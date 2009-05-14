@@ -27,7 +27,7 @@
  * Loads an image from a file.
  * @param file The filename of the image.
  */
-Magick::Image* Util::ImageFromFile(char* file)
+Magick::Image* Util::ImageFromFile(const char* file)
 {
     try
     {
