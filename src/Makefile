@@ -11,10 +11,10 @@ LIB=`pkg-config --libs $(LIBRARIES)`
 CTAGS=ctags
 
 all: $(OBJ) ctags
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(LIB) -o $(APPNAME) $(OBJ)
+	$(CC) $(CFLAGS) $(LIB) -o $(APPNAME) $(OBJ)
 
 .cpp.o:
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	rm -f $(APPNAME) *.o
