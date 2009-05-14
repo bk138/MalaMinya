@@ -189,10 +189,15 @@ void MalaMinya::initColorButtons()
  */
 void MalaMinya::initDevices()
 {
-
     /* init input devices */
     XDeviceInfo* devices;
-    int num;
+    int num, ignore;
+
+    if(! XQueryExtension (x11->dpy, "XInputExtension", &ignore, &ignore, &ignore))
+      throw Error("No XInputExtension!");
+
+    // activate XI2
+    XQueryInputVersion(x11->dpy, XI_2_Major, XI_2_Minor);
 
     devices = XListInputDevices(x11->dpy, &num);
 
@@ -211,17 +216,20 @@ void MalaMinya::initDevices()
         TRACE("found device: %d - %s \n", (int)devices[num].id,
                 devices[num].name); 
 
-        if (devices[num].use & IsXExtensionDevice)
+        if (devices[num].use == IsXPointer)
         {
-            dev = XOpenDevice(x11->dpy, devices[num].id);
-            DeviceMotionNotify(dev, Pointer::xi_motion, evclasses[0]);
-            DeviceButtonPress(dev, Pointer::xi_press, evclasses[1]);
-            DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
+	  TRACE("   adding device %d ...\n", (int)devices[num].id); 
 
-            XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
-            Pointer* p = createPointer(devices[num].id, evclasses);
-            p->dev = dev;
-            pointers[p->id] = p;
+	  dev = XOpenDevice(x11->dpy, devices[num].id);
+	  
+	  DeviceMotionNotify(dev, Pointer::xi_motion, evclasses[0]);
+	  DeviceButtonPress(dev, Pointer::xi_press, evclasses[1]);
+	  DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
+	  
+	  XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
+	  Pointer* p = createPointer(devices[num].id, evclasses);
+	  p->dev = dev;
+	  pointers[p->id] = p;
         }
     }
 
