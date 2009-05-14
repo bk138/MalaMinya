@@ -23,14 +23,15 @@
 #ifndef __ERROR_H__
 #define __ERROR_H__
 
+#include <string>
 
 class Error 
 {
-    public:
-        char* message;
+ public:
+  std::string message;
 
-        Error(char* message);
-        char* getMessage();
+  Error(std::string message);
+  std::string getMessage();
 
 };
 

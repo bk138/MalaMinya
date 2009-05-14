@@ -22,12 +22,14 @@
 
 #include "Error.h"
 
-Error::Error(char* message)
+using namespace std;
+
+Error::Error(string message)
 {
     this->message = message;
 }
 
-char* Error::getMessage()
+string Error::getMessage()
 {
     return this->message;
 }
