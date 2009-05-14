@@ -6,15 +6,15 @@ CC=g++
 OBJ=Util.o Error.o XConn.o Pointer.o Toolbar.o ColorButton.o MalaMinya.o main.o 
 LIBRARIES=x11 xext xi ImageMagick++
 FLAGS=-Wall -ggdb
-CFLAGS=$(FLAGS) `pkg-config --cflags $(LIBRARIES)` $(MPXCFLAGS)
-LIB=`pkg-config --libs $(LIBRARIES)` $(MPXLIB)
+CFLAGS=$(FLAGS) `pkg-config --cflags $(LIBRARIES)` 
+LIB=`pkg-config --libs $(LIBRARIES)` 
 CTAGS=ctags
 
 all: $(OBJ) ctags
-	$(CC) $(CFLAGS) $(LIB) -o $(APPNAME) $(OBJ)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(LIB) -o $(APPNAME) $(OBJ)
 
 .cpp.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
 clean:
 	rm -f $(APPNAME) *.o
