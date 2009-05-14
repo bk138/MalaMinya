@@ -1,0 +1,20 @@
+MalaMinya is a drawing application for groups. It supports multiple cursors
+and multi-handed interaction.
+MalaMinya is to be used with MPX. It will work with an X server with the X
+Input Extension enabled but loose multi-cursor abilities.
+
+Requirements:
+MPX 0.15
+MPXlib 0.5.2
+
+Warning:
+THIS IS A QUICK AND DIRTY PROGRAM!
+
+"mala" is the word for group, "minya" is the word for paint. Both words are
+from the Gupapuyngu lagauge from the Yolngu Matha group of the north-east
+Arnhem Land in the Northern Territory (Australia).
+For more information see http://www.ards.com.au
+
+The icons used for the toolbars are from the Tulliana Icon set. 
+http://www.kde-look.org/content/show.php?content=38757
+

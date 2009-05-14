@@ -1,0 +1,184 @@
+13.10.06
++ added resizing support. Toolbars and color buttons resize automatically
+depending on size of canvas.
+o added support for resizing pen and eraser line width
+o moved color buttons alignment to handleConfigure()
+o moved toolbar alignment to handleConfigure()
+
+Files:
+        ColorButton.cpp
+        ColorButton.h
+        MalaMinya.cpp
+        MalaMinya.h
+        Toolbar.cpp
+        Toolbar.h
+
+TAG: MalaMinya_0_7
+
+
+11.10.06
++ added destructor to clean some resources
++ added support for WM DELETE WINDOW to close app on WM request
+
+Files:
+        MalaMinya.cpp
+        Pointer.h
+        XConn.h
+        XConn.cpp
+
+TAG: MalaMinya_0_6_3
+
+05.10.06
++ added make dist target to makefile
++ added IMAGEPATH define for unified image directory
++ added synch.sh script to sync to firewall
+
+Files:
+        MalaMinya.h
+        MalaMinya.cpp
+        Makefile
+        Toolbar.cpp
+        ../synch.sh
+
+TAG: MalaMinya_0_6_2
+
+04.10.06
++ malaminya-control and createpackage.sh script to create debian packages
++ added GPL license header to source files and COPYING file to root
+
+Files:
+        ../malaminya-control
+        ../createpackage.sh
+        ../Copying
+        all source files
+
+TAG: MalaMinya_0_6_1
+
+03.09.06
+o cleaned up code that dealt with XINPUT event classes. 
+o Color buttons listen for press events now
++ Toolbar::setVertical method rather than passing to the constructor. Makes
+the rest of the code cleaner.
+
+Files:
+        MalaMinya.cpp
+        MalaMinya.h
+        Pointer.h
+        Pointer.cpp
+        Toolbar.cpp
+        Toolbar.h
+        ColorButton.cpp
+        ColorButton.h
+
+TAG: MalaMinya_0_6
+
+27.09.06
++ XConn class. Is used rather than passing dpy, screen, etc. around.
++ ColorButton class. ColorButtons are located around the canvas. Buttons do
+not yet listen for events.
+o updated images, toolbar icons are smaller now with more whitespace
+
+Files:
+        ../images/eraser.png
+        ../images/pen.png
+        ../images/wipe.png
+        MalaMinya.h
+        MalaMinya.cpp
+        Toolbar.h
+        Toolbar.cpp
+        Makefile
+        XConn.h
+        XConn.cpp
+        ColorButton.h
+        ColorButton.cpp
+
+o limiting device initialisation to only NO_USERS to avoid segfaults with a
+large number of users.
+
+Files:
+        MalaMinya.cpp
+
+22.09.06
++ icons for pointers and icons in the toolbars
+o canvas uses back buffer pixmap now
+
+Files:
+        ../images/icon*.png
+        MalaMinya.h
+        MalaMinya.cpp
+        Pointer.h
+        Pointer.cpp
+        Toolbar.h
+        Toolbar.cpp
+
+TAG: MalaMinya_0_5
+
+
+21.09.06
+o switched from glib containers to STL 
+o toolbars are horizontal/vertical now rather than 2x2 boxes.
+
+TAG: MalaMinya_0_3
+
+Files:
+        MalaMinya.h
+        MalaMinya.cpp
+        Toolbar.h
+        Toolbar.cpp
+
++ added images for the toolbars. 
++ added Util class (same as used in MPGWM).
+o small bugfix in logger.h, a define was wrong so erros didn't reach stdout
+
+Files:
+        ../images/pen.png
+        ../images/eraser.png
+        ../images/wipe.png
+        ../README
+        Makefile
+        Toolbar.cpp
+        Toolbar.h
+        MalaMinya.cpp
+        MalaMinya.h
+        Util.cpp
+        Util.h
+        logger.h
+
+TAG: MalaMinya_0_4
+
+
+20.09.06
++ added mode to Pointers
++ added wipe functionality to canvas
++ each pointer has a unique color now
++ Toolbar buttons work now (set eraser or pen and wipe screen)
+o fixed a bug in list handling, previous toolbars didn't get listed correctly.
+
+NOTE: Each device can only operate "its own" toolbars. This is not done using
+the MPX floor control but rather the event class registration. Needs to be
+fixed.
+
+o all devices can now use all toolbars
+
+TAG: MalaMinya_0_1
+
+o devices are limited to one toolbar using MPX floor control
+
+TAG: MalaMinya_0_2
+
+Files:
+        Makefile
+        logger.h
+        Error.cpp
+        Error.h
+        main.cpp
+        MalaMinya.cpp
+        MalaMinya.h
+        Pointer.cpp
+        Pointer.h
+        Toolbar.cpp
+        Toolbar.h
+
+19.09.06
+Initial checkin. Toolbar buttons do not react to button presses yet but
+drawing is possible.
