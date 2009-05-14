@@ -4,11 +4,9 @@ APPNAME=malaminya
 
 CC=g++
 OBJ=Util.o Error.o XConn.o Pointer.o Toolbar.o ColorButton.o MalaMinya.o main.o 
-MPXCFLAGS=-I ../../MPGXlib/src
-LIBRARIES=x11 xext xi glib-2.0 ImageMagick++
+LIBRARIES=x11 xext xi ImageMagick++
 FLAGS=-Wall -ggdb
 CFLAGS=$(FLAGS) `pkg-config --cflags $(LIBRARIES)` $(MPXCFLAGS)
-MPXLIB=-lmpx -L ../../MPGXlib/src/
 LIB=`pkg-config --libs $(LIBRARIES)` $(MPXLIB)
 CTAGS=ctags
 

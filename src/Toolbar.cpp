@@ -20,7 +20,7 @@
 
   --*/
 
-#include "mpgxlib.h"
+
 #include <X11/Xutil.h>
 
 #include "logger.h"
@@ -189,7 +189,7 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
     XMapRaised(x11->dpy, icon);
     
     XFlush(x11->dpy);
-    XSync(x11->dpy, FALSE);
+    XSync(x11->dpy, False);
 }
 
 void Toolbar::setButtonSize(int size)
@@ -277,7 +277,7 @@ void Toolbar::handleClick(Pointer* device, Window win)
  */
 void Toolbar::restrictTo(int device)
 {
-    MPXACLAddPermDevices(toolbar, &device, 1);
+  //MPXACLAddPermDevices(toolbar, &device, 1);
 }
 
 void Toolbar::repaint()

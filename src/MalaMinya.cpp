@@ -20,11 +20,11 @@
 
   --*/
 
+#include <string>
+
 #include "MalaMinya.h"
 #include "logger.h"
 #include "Error.h"
-#include "mpgxlib.h"
-#include <string>
 #include "Util.h"
 
 
@@ -41,7 +41,7 @@ MalaMinya::MalaMinya(char* display)
     pen_width = 5;
     eraser_width = 15;
 
-    MPXInit(x11->dpy);
+    //    MPXInit(x11->dpy);
 
     XSetWindowAttributes attr;
     attr.background_pixel = x11->white;
@@ -100,7 +100,7 @@ void MalaMinya::init()
     registerEvents();
 
     XFlush(x11->dpy);
-    XSync(x11->dpy, FALSE);
+    XSync(x11->dpy, False);
 }
 
 /**

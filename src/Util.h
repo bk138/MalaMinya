@@ -36,8 +36,8 @@ class Util
 {
 
     public:
-        static Magick::Image* Util::ImageFromFile(char* filename);
-        static XImage* Util::ImageToXImage(Display* dpy, int screen, Magick::Image* image);
+        static Magick::Image* ImageFromFile(char* filename);
+        static XImage* ImageToXImage(Display* dpy, int screen, Magick::Image* image);
 };
 
 #endif

@@ -23,15 +23,14 @@
 #ifndef __ERROR_H__
 #define __ERROR_H__
 
-#include <glib.h>
 
 class Error 
 {
     public:
-        gchar* message;
+        char* message;
 
-        Error(gchar* message);
-        gchar* getMessage();
+        Error(char* message);
+        char* getMessage();
 
 };
 
