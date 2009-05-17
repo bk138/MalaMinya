@@ -60,6 +60,8 @@ MalaMinya::MalaMinya(char* display)
     if (!win)
         throw Error("Cannot create top-level window!");
 
+    XSetWMProtocols(x11->dpy, win, &x11->wm_delete_window, 1);
+
     XMapWindow(x11->dpy, win);
 
 }
