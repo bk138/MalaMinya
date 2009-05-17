@@ -510,23 +510,21 @@ void MalaMinya::handleMotionEvent(XDeviceMotionEvent* mev)
 {
 
     Pointer* p = findPointer(mev->deviceid);
-    if (mev->state & Button1Mask)
+    if (mev->state & (Button1Mask | Button2Mask | Button3Mask))
     {
         long mask = GCForeground | GCLineWidth;
         XGCValues vals;
-        switch(p->getMode()) 
-        {
-            case PEN:
-                vals.foreground = p->getColorPixel();
-                vals.line_width = pen_width;
-                break;
-            case ERASER:
-                vals.foreground = x11->white;
-                vals.line_width = eraser_width;
-                break;
-            default:
-                ERR("pointer in unknown mode\n");
-        }
+
+	if(mev->state & Button1Mask)
+	  {
+	    vals.foreground = p->getColorPixel();
+	    vals.line_width = pen_width;
+	  }
+	else
+	  {
+	    vals.foreground = x11->white;
+	    vals.line_width = eraser_width;
+	  }
         XChangeGC(x11->dpy, buffer, mask, &vals);
         XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->x, mev->y);
     }
