@@ -96,8 +96,8 @@ void MalaMinya::init()
        devices. otherwise we have to go out of our way to get the tool buttons
        to listen to the right event classes */
     initGUI();
-    initDevices();
     initColorButtons();
+    initDevices();
     initToolbars();
     registerEvents();
 
@@ -232,6 +232,7 @@ void MalaMinya::initDevices()
 	  Pointer* p = createPointer(devices[num].id, evclasses);
 	  p->dev = dev;
 	  pointers[p->id] = p;
+	  p->setColor(cbuttons.at(0)->getColor());
         }
     }
 
