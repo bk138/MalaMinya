@@ -41,8 +41,6 @@ MalaMinya::MalaMinya(char* display)
     pen_width = 5;
     eraser_width = 15;
 
-    //    MPXInit(x11->dpy);
-
     XSetWindowAttributes attr;
     attr.background_pixel = x11->white;
     attr.event_mask = ExposureMask | StructureNotifyMask; 
@@ -61,9 +59,33 @@ MalaMinya::MalaMinya(char* display)
         throw Error("Cannot create top-level window!");
 
     XSetWMProtocols(x11->dpy, win, &x11->wm_delete_window, 1);
+ 
+    XTextProperty title_prop;
+    const char *title[] = {"MalaMinya"};
+    XStringListToTextProperty(const_cast<char**>(title), 1, &title_prop);
+    XSetWMName(x11->dpy, win, &title_prop);
+
+    XSizeHints* win_size_hints = XAllocSizeHints();
+    if (!win_size_hints) 
+      throw Error("XAllocSizeHints - out of memory\n");
+       
+    win_size_hints->flags = PMaxSize | PMinSize | PResizeInc | PAspect;
+    win_size_hints->min_width = 200;
+    win_size_hints->min_height = 200;
+    win_size_hints->max_width = width;
+    win_size_hints->max_height = height;
+    win_size_hints->min_aspect.x = 1;
+    win_size_hints->min_aspect.y = 1;
+    win_size_hints->max_aspect.x = 1;
+    win_size_hints->max_aspect.y = 1;
+    win_size_hints->width_inc = 20;
+    win_size_hints->height_inc = 20;
+
+    XSetWMNormalHints(x11->dpy, win, win_size_hints);
+
+    XFree(win_size_hints);
 
     XMapWindow(x11->dpy, win);
-
 }
 
 MalaMinya::~MalaMinya()
@@ -390,7 +412,6 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
     int width = (WIDTH > ev->width) ? ev->width : WIDTH;
     width -= width % 20;
     height = width; 
-    XResizeWindow(x11->dpy, win, width, height);
     XResizeWindow(x11->dpy, menuswin, width, height);
 
     pen_width = width/100;

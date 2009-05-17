@@ -24,6 +24,7 @@
 #define __MALAMINYA_H__
 
 #include<X11/Xlib.h>
+#include<X11/Xutil.h>
 #include<X11/extensions/XInput.h>
 #include<map>
 #include<vector>
