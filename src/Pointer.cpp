@@ -34,7 +34,7 @@ Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon)
 {
     this->id = id;
     this->x = this->y = -100;
-    this->size = 0;
+    this->size = DFLT_POINTERSIZE;
 
     this->evclasses = new XEventClass[3];
     this->evclasses[XI_MOTION] = evclasses[XI_MOTION];

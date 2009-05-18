@@ -38,9 +38,6 @@ MalaMinya::MalaMinya(char* display)
     width = WIDTH;
     height = HEIGHT;
 
-    pen_width = 5;
-    eraser_width = 15;
-
     XSetWindowAttributes attr;
     attr.background_pixel = x11->white;
     attr.event_mask = ExposureMask | StructureNotifyMask; 
@@ -419,8 +416,15 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
     height = width; 
     XResizeWindow(x11->dpy, menuswin, width, height);
 
-    pen_width = width/100;
-    eraser_width = pen_width * 3;
+    // scale all pointer sizes
+    map<int, Pointer*>::const_iterator itp = pointers.begin();
+    while(itp != pointers.end())
+      {       
+	Pointer* p = itp->second;
+	p->setSize(DFLT_POINTERSIZE * width/WIDTH);
+	itp++;
+      }
+    
 
     int btwidth = (int) (width / (double)(cbuttons.size() / 4.0));
     int btheight = btwidth;
@@ -523,12 +527,12 @@ void MalaMinya::handleMotionEvent(XDeviceMotionEvent* mev)
 	if(mev->state & Button1Mask)
 	  {
 	    vals.foreground = p->getColorPixel();
-	    vals.line_width = pen_width;
+	    vals.line_width = p->getSize();
 	  }
 	else
 	  {
 	    vals.foreground = x11->white;
-	    vals.line_width = eraser_width;
+	    vals.line_width = p->getSize() * 3;
 	  }
         XChangeGC(x11->dpy, buffer, mask, &vals);
         XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->x, mev->y);
@@ -577,6 +581,7 @@ void MalaMinya::wipe()
     XChangeGC(x11->dpy, buffer, mask, &vals);
     XFillRectangle(x11->dpy, backbuffer, buffer, 0, 0, width, height);
     XFlush(x11->dpy);
+    TRACE("WIPE!\n");
 }
 
 
@@ -622,6 +627,15 @@ bool MalaMinya::save()
 }
 
 
+void MalaMinya::pensize(Pointer *p)
+{
+  int size = p->getSize();
+  
+  if(size >= width / 20)
+    p->setSize(DFLT_POINTERSIZE);
+  else
+    p->setSize(size * 2);
+}
 
 
 Magick::Image* MalaMinya::getPointerImage(int id)

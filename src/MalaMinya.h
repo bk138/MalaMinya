@@ -45,6 +45,7 @@ const int MENUHEIGHT = BT_SIZE;
 const int NO_USERS = 8;
 const int WIDTH = BT_SIZE * 20;
 const int HEIGHT = WIDTH;
+const int DFLT_PENSIZE = 5;
 using namespace std;
 
 class MalaMinya {
@@ -54,10 +55,6 @@ class MalaMinya {
 
         int width;
         int height;
-
-
-        int pen_width;
-        int eraser_width;
 
         Window win;
         Window menuswin;
@@ -88,6 +85,7 @@ class MalaMinya {
 
         void wipe();
 	bool save();
+	void pensize(Pointer* dev);
 
     private:
         void initGUI();

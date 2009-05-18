@@ -28,6 +28,8 @@
 #include<X11/extensions/XInput.h>
 
 
+const int DFLT_POINTERSIZE = 5;
+
 
 enum event_classes {
     XI_MOTION = 0,
