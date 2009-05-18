@@ -34,8 +34,7 @@ Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon)
 {
     this->id = id;
     this->x = this->y = -100;
-    this->mode = PEN;
-
+  
     this->evclasses = new XEventClass[3];
     this->evclasses[XI_MOTION] = evclasses[XI_MOTION];
     this->evclasses[XI_PRESS] = evclasses[XI_PRESS];
@@ -49,15 +48,6 @@ void Pointer::setSize(int size)
     this->size = size;
 }
 
-void Pointer::setMode(int mode) 
-{
-    this->mode = mode;
-}
-
-int Pointer::getMode()
-{
-    return this->mode;
-}
 
 void Pointer::setColor(XColor color)
 {

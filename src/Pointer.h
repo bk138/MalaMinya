@@ -27,10 +27,7 @@
 #include<X11/Xlib.h>
 #include<X11/extensions/XInput.h>
 
-enum pointer_modes {
-    PEN,
-    ERASER
-};
+
 
 enum event_classes {
     XI_MOTION = 0,
@@ -50,8 +47,7 @@ class Pointer {
         int x; /* x position of pointer */
         int y; /* y position of pointer */
         int id ; /* id is the same as the device id */
-        int mode; /* one of pointer_modes */
-        XColor color;
+	XColor color;
 	int size;
 
         XEventClass* evclasses;
@@ -62,8 +58,6 @@ class Pointer {
     public:
         Pointer(int id, XEventClass* evclasses, XImage* icon);
         ~Pointer();
-        int getMode();
-        void setMode(int mode);
 	void setSize(int size);
         long getColorPixel();
         void setColor(XColor color);
