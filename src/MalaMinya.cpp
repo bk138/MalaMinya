@@ -574,6 +574,51 @@ void MalaMinya::wipe()
     XFlush(x11->dpy);
 }
 
+
+bool MalaMinya::save()
+{
+  unsigned int w, h;
+  unsigned int ignore;
+  Window ign_window;
+ 
+  XGetGeometry(x11->dpy, canvaswin, &ign_window, (int*)&ignore, (int*)&ignore, &w, &h, &ignore, &ignore);
+
+  XImage* ximage = XGetImage(x11->dpy, canvaswin, 0, 0, w, h, AllPlanes, ZPixmap);
+  Magick::Image* image = Util::XImageToImage(ximage);
+  if(!image)
+    {
+      XFree(ximage);
+      return false;
+    }
+
+  // should be enough ... 
+  char filename[138]; 
+  char date[138]; 
+  time_t t; time_t *tp = &t;  
+
+  time(tp); 
+
+  // convert to date-string  
+  strftime(date, 138, "%d.%m.%Y-%H.%M.%S", localtime(tp)); 
+  snprintf(filename, 138, "malaminya-save_%s.png", date); 
+ 
+  if(! Util::ImageToFile(image, filename))
+    {
+      delete image;
+      XFree(ximage);
+      return false;
+    }
+
+  delete image;
+  XFree(ximage);
+
+  TRACE("Saved %s!\n", filename);
+  return true;
+}
+
+
+
+
 Magick::Image* MalaMinya::getPointerImage(int id)
 {
     char cId[2] = {'0' + id, cId[1] = '\0'};
@@ -583,6 +628,8 @@ Magick::Image* MalaMinya::getPointerImage(int id)
     Magick::Image* img = Util::ImageFromFile((char*)file.c_str()); 
     return img;
 }
+
+
 
 /**
  * Creates a icon for each pointer. Currently up to 8 different ones.

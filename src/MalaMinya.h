@@ -87,6 +87,7 @@ class MalaMinya {
         void run();
 
         void wipe();
+	bool save();
 
     private:
         void initGUI();

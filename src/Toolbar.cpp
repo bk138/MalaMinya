@@ -42,12 +42,12 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
     btsize = BT_SIZE;
     rescale(img_icon, &ximg_icon, btsize);
     
-    ximg_pen = ximg_eraser = ximg_wipe = NULL;
+    ximg_pen = ximg_save = ximg_wipe = NULL;
 
     XColor exact;
     XAllocNamedColor(x11->dpy, x11->cmap, "green", &color_pen,
             &exact);
-    XAllocNamedColor(x11->dpy, x11->cmap, "red", &color_eraser,
+    XAllocNamedColor(x11->dpy, x11->cmap, "red", &color_save,
             &exact);
     XAllocNamedColor(x11->dpy, x11->cmap, "blue", &color_wipe,
             &exact);
@@ -101,8 +101,8 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
     if (!toolbar)
         throw Error("Could not create window!");
 
-    attr.background_pixel = color_eraser.pixel;
-    eraser = XCreateWindow(x11->dpy,
+    attr.background_pixel = color_save.pixel;
+    save = XCreateWindow(x11->dpy,
             toolbar,
             BT_SIZE * 2, 0,
             BT_SIZE, BT_SIZE,
@@ -146,10 +146,10 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
         }
     }
 
-    img_eraser = Util::ImageFromFile(IMAGEPATH "eraser.png");
-    if (img_eraser)
+    img_save = Util::ImageFromFile(IMAGEPATH "save.png");
+    if (img_save)
     {
-        XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img_eraser);
+        XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img_save);
         if (!ximage)
         {
             ERR("Could not create ximage for pen.\n");
@@ -157,10 +157,10 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
         {
             XGCValues vals; 
             long mask = 0;
-            gc_eraser = XCreateGC(x11->dpy, eraser, mask, &vals);
-            XPutImage(x11->dpy, pen, gc_eraser, ximage, 0, 0, 0, 0,
+            gc_save = XCreateGC(x11->dpy, save, mask, &vals);
+            XPutImage(x11->dpy, pen, gc_save, ximage, 0, 0, 0, 0,
                     ximage->width, ximage->height); 
-            ximg_eraser = ximage;
+            ximg_save = ximage;
         }
     }
 
@@ -184,7 +184,7 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
 
     XMapWindow(x11->dpy, toolbar);
     XMapRaised(x11->dpy, pen);
-    XMapRaised(x11->dpy, eraser);
+    XMapRaised(x11->dpy, save);
     XMapRaised(x11->dpy, wipe);
     XMapRaised(x11->dpy, icon);
     
@@ -201,8 +201,8 @@ void Toolbar::setButtonSize(int size)
     rescale(img_pen, &ximg_pen, size);
     XResizeWindow(x11->dpy, pen, size, size);
 
-    rescale(img_eraser, &ximg_eraser, size);
-    XResizeWindow(x11->dpy, eraser, size, size);
+    rescale(img_save, &ximg_save, size);
+    XResizeWindow(x11->dpy, save, size, size);
 
     rescale(img_wipe, &ximg_wipe, size);
     XResizeWindow(x11->dpy, wipe, size, size);
@@ -229,13 +229,13 @@ void Toolbar::setVertical(bool vertical)
         XResizeWindow(x11->dpy, toolbar, btsize, btsize * 4);
         XMoveWindow(x11->dpy, icon, 0, 0);
         XMoveWindow(x11->dpy, pen, 0, btsize);
-        XMoveWindow(x11->dpy, eraser, 0, btsize * 2);
+        XMoveWindow(x11->dpy, save, 0, btsize * 2);
         XMoveWindow(x11->dpy, wipe, 0, btsize * 3);
     } else {
         XResizeWindow(x11->dpy, toolbar, btsize * 4, btsize);
         XMoveWindow(x11->dpy, icon, 0, 0);
         XMoveWindow(x11->dpy, pen, btsize, 0);
-        XMoveWindow(x11->dpy, eraser, btsize * 2, 0);
+        XMoveWindow(x11->dpy, save, btsize * 2, 0);
         XMoveWindow(x11->dpy, wipe, btsize * 3, 0);
 
     }
@@ -249,13 +249,13 @@ void Toolbar::move(int x, int y)
 void Toolbar::registerForEvents(XEventClass* evclass)
 {
     XSelectExtensionEvent(x11->dpy, pen, evclass, 1);
-    XSelectExtensionEvent(x11->dpy, eraser, evclass, 1);
+    XSelectExtensionEvent(x11->dpy, save, evclass, 1);
     XSelectExtensionEvent(x11->dpy, wipe, evclass, 1);
 }
 
 bool Toolbar::hasWindow(Window win)
 {
-    return (win == pen || win == eraser || win == wipe);
+    return (win == pen || win == save || win == wipe);
 }
 
 void Toolbar::handleClick(Pointer* device, Window win)
@@ -263,10 +263,12 @@ void Toolbar::handleClick(Pointer* device, Window win)
     if (win == wipe)
     {
         parent->wipe();
-        TRACE("WIPE!");
-    } else if (win == eraser) {
-        device->setMode(ERASER);
-    } else if (win == pen) {
+        TRACE("WIPE!\n");
+    } else if (win == save) 
+      {
+	parent->save();
+      } 
+    else if (win == pen) {
         device->setMode(PEN);
     }
 
@@ -286,8 +288,8 @@ void Toolbar::repaint()
         XPutImage(x11->dpy, pen, gc_pen, ximg_pen, 0, 0, 0, 0, btsize,
                 btsize);
 
-    if (ximg_eraser && gc_eraser)
-        XPutImage(x11->dpy, eraser, gc_eraser, ximg_eraser, 0, 0, 0, 0,
+    if (ximg_save && gc_save)
+        XPutImage(x11->dpy, save, gc_save, ximg_save, 0, 0, 0, 0,
                 btsize, btsize); 
     if (ximg_wipe && gc_wipe)
         XPutImage(x11->dpy, wipe, gc_wipe, ximg_wipe, 0, 0, 0, 0, btsize,

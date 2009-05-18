@@ -55,10 +55,10 @@ class Toolbar {
         XImage* ximg_pen;
         Magick::Image* img_pen;
 
-        Window eraser;
-        GC gc_eraser;
-        XImage* ximg_eraser;
-        Magick::Image* img_eraser;
+        Window save;
+        GC gc_save;
+        XImage* ximg_save;
+        Magick::Image* img_save;
 
         Window wipe;
         GC gc_wipe;
@@ -66,7 +66,7 @@ class Toolbar {
         Magick::Image* img_wipe;
 
         XColor color_pen;
-        XColor color_eraser;
+        XColor color_save;
         XColor color_wipe;
         
         bool vertical;

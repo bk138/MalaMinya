@@ -44,6 +44,27 @@ Magick::Image* Util::ImageFromFile(const char* file)
     }
 }
 
+
+// saves an image to a file
+bool Util::ImageToFile(Magick::Image* image, const char* filename)
+{
+  try
+    {
+      image->write(filename);
+      return true; 
+    }
+  catch (Magick::Exception &error)
+    {
+      ERR("Saving image %s failed.\n", filename);
+      ERR("  -- Error: %s\n", error.what());
+      return false;
+    }
+ 
+}
+
+
+
+
 /**
  * Converts a Magick::Image to an XImage that can be displayed on the screen.
  * @param dpy The X Display.
@@ -85,3 +106,23 @@ XImage* Util::ImageToXImage(Display* dpy, int screen, Magick::Image* image)
     }
 }
 
+       
+
+Magick::Image* Util::XImageToImage(const XImage* ximage)
+{
+   try 
+     {
+       Magick::Image *image = new Magick::Image();
+       image->modifyImage();
+       image->type(Magick::TrueColorType);
+       image->read(ximage->width, ximage->height, "BGRA", Magick::CharPixel, ximage->data);
+       return image;
+   }
+   catch (Magick::Exception &error)
+     {
+       ERR("Converting image failed.\n");
+       ERR("  -- Error: %s\n", error.what());
+       return NULL;
+     }
+ 
+}
