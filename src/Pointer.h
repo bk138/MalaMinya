@@ -20,15 +20,15 @@
 
   --*/
 
-#ifndef __USER_H__
-#define __USER_H__
+#ifndef __POINTER_H__
+#define __POINTER_H__
 
 
 #include<X11/Xlib.h>
 #include<X11/extensions/XInput.h>
 
 
-const int DFLT_POINTERSIZE = 5;
+const int DFLT_POINTERSIZE = 3;
 
 
 enum event_classes {

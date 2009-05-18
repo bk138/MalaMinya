@@ -631,7 +631,7 @@ void MalaMinya::pensize(Pointer *p)
 {
   int size = p->getSize();
   
-  if(size >= width / 20)
+  if(size >= width / 30)
     p->setSize(DFLT_POINTERSIZE);
   else
     p->setSize(size * 2);
