@@ -92,9 +92,7 @@ class MalaMinya {
         void initColorButtons();
         void initDevices(); /* initialize the input devices */
         void registerEvents();
-        XImage* createPointerIcon(int id);
-        Magick::Image* getPointerImage(int id);
-
+      
         void handleMotionEvent(XDeviceMotionEvent* mev);
         void handleButtonEvent(XDeviceButtonEvent* bev);
         void handleConfigure(XConfigureEvent* ev);
@@ -103,7 +101,7 @@ class MalaMinya {
 
         void pointerListDestroy();
         Pointer* findPointer(int id);
-        Pointer* createPointer(int id, XEventClass* evclasses);
+        Pointer* createPointer(int id, int num_used, XEventClass* evclasses);
         void updatePointerIcons();
 
         void tbListDestroy();

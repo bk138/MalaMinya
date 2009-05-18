@@ -30,7 +30,7 @@ int Pointer::xi_release = 0;
  * Creates a new pointer with a given ID. The evclasses has to be an array of
  * 3 event classes in the order motion, press and release.
  */
-Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon)
+Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon, Magick::Image* img)
 {
     this->id = id;
     this->x = this->y = -100;
@@ -42,7 +42,17 @@ Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon)
     this->evclasses[XI_RELEASE] = evclasses[XI_RELEASE];
 
     this->icon = icon;
+    this->img = img;
 }
+
+Pointer::~Pointer()
+{
+    delete icon;
+    delete img;
+    delete evclasses;
+}
+
+
 
 void Pointer::setSize(int size) 
 {
@@ -70,8 +80,13 @@ XEventClass* Pointer::getEventClass(int which)
     return &evclasses[which];
 }
 
-Pointer::~Pointer()
+XImage* Pointer::getIcon()
 {
-    delete icon;
-    delete evclasses;
+  return this->icon;
+}
+
+
+Magick::Image* Pointer::getImage()
+{
+  return this->img;
 }

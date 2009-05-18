@@ -250,9 +250,9 @@ void MalaMinya::initDevices()
 	  DeviceMotionNotify(dev, Pointer::xi_motion, evclasses[0]);
 	  DeviceButtonPress(dev, Pointer::xi_press, evclasses[1]);
 	  DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
-	  
+
 	  XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
-	  Pointer* p = createPointer(num_used, evclasses);
+	  Pointer* p = createPointer(devices[num].id, num_used, evclasses);
 	  p->dev = dev;
 	  pointers[p->id] = p;
 	  p->setColor(cbuttons.at(0)->getColor());
@@ -277,7 +277,7 @@ void MalaMinya::initToolbars()
     while(it != pointers.end())
     {
         Pointer* p = it->second;
-        tb = createToolbar(getPointerImage(p->id));
+        tb = createToolbar(p->getImage());
         tb->id = p->id;
 
         switch(p->id) /* There are only 8 devices */
@@ -638,29 +638,6 @@ void MalaMinya::pensize(Pointer *p)
 }
 
 
-Magick::Image* MalaMinya::getPointerImage(int id)
-{
-    char cId[2] = {'0' + id, cId[1] = '\0'};
-    string file = IMAGEPATH "icon";
-    file.append((const char*)cId);
-    file.append(".png");
-    Magick::Image* img = Util::ImageFromFile((char*)file.c_str()); 
-    return img;
-}
-
-
-
-/**
- * Creates a icon for each pointer. Currently up to 8 different ones.
- */
-XImage* MalaMinya::createPointerIcon(int id)
-{
-    Magick::Image* img = getPointerImage(id);
-    img->scale(Magick::Geometry(16, 16, 0, 0, false, false));
-    XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img);
-    delete img;
-    return ximage;
-}
 
 void MalaMinya::repaintCanvas()
 {
@@ -671,11 +648,21 @@ void MalaMinya::repaintCanvas()
 /** 
  * Creates a new pointer object with a specific icon.
  */
-Pointer* MalaMinya::createPointer(int id, XEventClass* evclasses)
+Pointer* MalaMinya::createPointer(int id, int num_used, XEventClass* evclasses)
 {
-    XImage* img = createPointerIcon(id);
-    Pointer* p = new Pointer(id, evclasses, img);
-    return p;
+  char iconId[2] = {'0' + num_used, '\0'};
+  string file = IMAGEPATH "icon";
+  file.append((const char*)iconId);
+  file.append(".png");
+  Magick::Image* img = Util::ImageFromFile((char*)file.c_str()); 
+
+  // copy in here
+  Magick::Image icon_img = *img; 
+  icon_img.scale(Magick::Geometry(16, 16, 0, 0, false, false));
+  XImage* icon = Util::ImageToXImage(x11->dpy, x11->screen, &icon_img);
+
+  Pointer* p = new Pointer(id, evclasses, icon, img);
+  return p;
 }
 
 /**
@@ -688,7 +675,7 @@ void MalaMinya::updatePointerIcons()
     while(it != pointers.end())
     {
         Pointer* p = it->second;
-        XPutImage(x11->dpy, canvaswin, canvas, p->icon, 0, 0, p->x + 10, p->y + 10, 16, 16);
+        XPutImage(x11->dpy, canvaswin, canvas, p->getIcon(), 0, 0, p->x + 10, p->y + 10, 16, 16);
         it++;
     }
 }

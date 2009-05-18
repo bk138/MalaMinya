@@ -26,7 +26,7 @@
 
 #include<X11/Xlib.h>
 #include<X11/extensions/XInput.h>
-
+#include <Magick++.h>
 
 const int DFLT_POINTERSIZE = 3;
 
@@ -50,23 +50,29 @@ class Pointer {
         int y; /* y position of pointer */
         int id ; /* id is the same as the device id */
 
-        XImage* icon;
 	XDevice* dev;
+
 
     private:
 	int size;
 	XColor color;
 	XEventClass* evclasses;
+	XImage* icon; // the small XImage incarnation of img
+        Magick::Image* img;
 
     public:
-        Pointer(int id, XEventClass* evclasses, XImage* icon);
+        Pointer(int device_id, XEventClass* evclasses, XImage* icon, Magick::Image* img);
         ~Pointer();
+
 	void setSize(int size);
-	int getSize();
+	int  getSize();
+
         long getColorPixel();
         void setColor(XColor color);
 
         XEventClass* getEventClass(int which);
+	XImage* getIcon();         // get the small one as XImage
+	Magick::Image* getImage(); // get the full one
 };
 
 #endif
