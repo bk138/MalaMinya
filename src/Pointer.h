@@ -52,6 +52,7 @@ class Pointer {
         int id ; /* id is the same as the device id */
         int mode; /* one of pointer_modes */
         XColor color;
+	int size;
 
         XEventClass* evclasses;
         XImage* icon;
@@ -63,6 +64,7 @@ class Pointer {
         ~Pointer();
         int getMode();
         void setMode(int mode);
+	void setSize(int size);
         long getColorPixel();
         void setColor(XColor color);
 

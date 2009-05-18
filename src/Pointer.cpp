@@ -44,6 +44,11 @@ Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon)
     this->icon = icon;
 }
 
+void Pointer::setSize(int size) 
+{
+    this->size = size;
+}
+
 void Pointer::setMode(int mode) 
 {
     this->mode = mode;
