@@ -47,18 +47,20 @@ class Pointer {
         int x; /* x position of pointer */
         int y; /* y position of pointer */
         int id ; /* id is the same as the device id */
-	XColor color;
-	int size;
 
-        XEventClass* evclasses;
         XImage* icon;
+	XDevice* dev;
 
-        XDevice* dev;
+    private:
+	int size;
+	XColor color;
+	XEventClass* evclasses;
 
     public:
         Pointer(int id, XEventClass* evclasses, XImage* icon);
         ~Pointer();
 	void setSize(int size);
+	int getSize();
         long getColorPixel();
         void setColor(XColor color);
 

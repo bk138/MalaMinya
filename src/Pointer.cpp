@@ -49,6 +49,11 @@ void Pointer::setSize(int size)
     this->size = size;
 }
 
+int Pointer::getSize()
+{
+  return this->size;
+}
+
 
 void Pointer::setColor(XColor color)
 {
