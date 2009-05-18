@@ -39,6 +39,8 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
     this->vertical = false;
     this->ximg_icon = NULL;
 
+    this->is_restricted = false;
+
     btsize = BT_SIZE;
     rescale(img_icon, &ximg_icon, btsize);
     
@@ -260,18 +262,16 @@ bool Toolbar::hasWindow(Window win)
 
 void Toolbar::handleClick(Pointer* device, Window win)
 {
-    if (win == wipe)
-    {
-        parent->wipe();
-        TRACE("WIPE!\n");
-    } else if (win == save) 
-      {
-	parent->save();
-      } 
-    else if (win == pen) {
-        device->setMode(PEN);
-    }
-
+  if(this->is_restricted)
+    if(device->id != this->mydevice)
+      return;
+  
+  if (win == wipe)
+    parent->wipe();
+  else if (win == save) 
+    parent->save();
+  else if (win == pen) 
+    parent->pensize(device);
 }
 
 /**
@@ -279,7 +279,8 @@ void Toolbar::handleClick(Pointer* device, Window win)
  */
 void Toolbar::restrictTo(int device)
 {
-  //MPXACLAddPermDevices(toolbar, &device, 1);
+  this->mydevice = device;
+  this->is_restricted = true;
 }
 
 void Toolbar::repaint()

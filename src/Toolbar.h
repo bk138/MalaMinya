@@ -72,6 +72,9 @@ class Toolbar {
         bool vertical;
         int  btsize;
 
+	int mydevice;
+	bool is_restricted;
+
     public:
         Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* icon);
         void move(int x, int y);
