@@ -215,7 +215,7 @@ void MalaMinya::initDevices()
 {
     /* init input devices */
     XDeviceInfo* devices;
-    int num, ignore;
+    int num, ignore, num_used;
 
     if(! XQueryExtension (x11->dpy, "XInputExtension", &ignore, &ignore, &ignore))
       throw Error("No XInputExtension!");
@@ -230,7 +230,8 @@ void MalaMinya::initDevices()
 
     pointers.clear();
 
-    num = (num > NO_USERS) ? NO_USERS: num;
+    num_used = 0;
+
     while(num > 0)
     {
         XDevice* dev;
@@ -242,6 +243,9 @@ void MalaMinya::initDevices()
 
         if (devices[num].use == IsXPointer)
         {
+          if(num_used >= NO_USERS)
+             break;
+        
 	  TRACE("   adding device %d ...\n", (int)devices[num].id); 
 
 	  dev = XOpenDevice(x11->dpy, devices[num].id);
@@ -251,10 +255,11 @@ void MalaMinya::initDevices()
 	  DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
 	  
 	  XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
-	  Pointer* p = createPointer(devices[num].id, evclasses);
+	  Pointer* p = createPointer(num_used, evclasses);
 	  p->dev = dev;
 	  pointers[p->id] = p;
 	  p->setColor(cbuttons.at(0)->getColor());
+	  ++num_used;
         }
     }
 
