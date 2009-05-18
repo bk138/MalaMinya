@@ -45,7 +45,6 @@ const int MENUHEIGHT = BT_SIZE;
 const int NO_USERS = 8;
 const int WIDTH = BT_SIZE * 20;
 const int HEIGHT = WIDTH;
-const int DFLT_PENSIZE = 5;
 using namespace std;
 
 class MalaMinya {
