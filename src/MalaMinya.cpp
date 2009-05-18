@@ -637,6 +637,7 @@ Magick::Image* MalaMinya::getPointerImage(int id)
 XImage* MalaMinya::createPointerIcon(int id)
 {
     Magick::Image* img = getPointerImage(id);
+    img->scale(Magick::Geometry(16, 16, 0, 0, false, false));
     XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img);
     delete img;
     return ximage;
