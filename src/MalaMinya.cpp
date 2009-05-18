@@ -675,7 +675,7 @@ void MalaMinya::updatePointerIcons()
     while(it != pointers.end())
     {
         Pointer* p = it->second;
-        XPutImage(x11->dpy, canvaswin, canvas, p->getIcon(), 0, 0, p->x + 10, p->y + 10, 16, 16);
+        XPutImage(x11->dpy, canvaswin, canvas, p->getIcon(), 0, 0, p->x + 20, p->y + 10, 16, 16);
         it++;
     }
 }
