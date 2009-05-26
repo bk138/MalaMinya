@@ -100,13 +100,10 @@ class MalaMinya {
 
         void repaintCanvas();
 
-        void pointerListDestroy();
-        Pointer* findPointer(int id);
+	Pointer* findPointer(int id);
         Pointer* createPointer(int id, int num_used, XEventClass* evclasses);
         void updatePointerIcons();
 
-        void tbListDestroy();
-        Toolbar* createToolbar(Magick::Image* icon);
         Toolbar* findToolbarFromWindow(Window win);
         void repaintToolbars();
         void placeToolbars();

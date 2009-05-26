@@ -286,7 +286,7 @@ void MalaMinya::initToolbars()
     while(itp != pointers.end())
     {
         Pointer* p = itp->second;
-        tb = createToolbar(p->getImage());
+        tb = new Toolbar(this, x11, menuswin, p->getImage());
         tb->id = p->id;
 
 	if(i%2)
@@ -638,34 +638,9 @@ Pointer* MalaMinya::findPointer(int id)
 }
 
 
-void MalaMinya::pointerListDestroy()
-{
-    map<int, Pointer*>::iterator it = pointers.begin();
-
-    while(it != pointers.end())
-    {
-        delete it->second;
-        it++;
-    }
-
-    pointers.clear();
-}
 
 
-void MalaMinya::tbListDestroy()
-{
-    toolbars.clear();
-}
 
-/*
- * Create a new toolbar object.
- * If vertical is set, the buttons will be aligned vertically.
- */
-Toolbar* MalaMinya::createToolbar(Magick::Image* icon)
-{
-    Toolbar* tb = new Toolbar(this, x11, menuswin, icon);
-    return tb;
-}
 
 /**
  * Returns the toolbar this window belongs to or NULL if no toolbar could be
