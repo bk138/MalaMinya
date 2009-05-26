@@ -294,7 +294,7 @@ void Toolbar::handleClick(Pointer* device, Window win)
   if (win == wipe)
     parent->wipe();
   else if (win == save) 
-    parent->save();
+    parent->save(device->getId());
   else if (win == pen) 
     parent->pensize(device);
 }

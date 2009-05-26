@@ -472,7 +472,6 @@ void MalaMinya::handleMotionEvent(XDeviceMotionEvent* mev)
 
 void MalaMinya::handleButtonEvent(XDeviceButtonEvent* bev)
 {
-    TRACE("button press event on window %x\n", (unsigned int)bev->window);
     Toolbar* tb = findToolbarFromWindow(bev->window);
     Pointer* p = findPointer(bev->deviceid);
     if (!tb)
@@ -528,7 +527,7 @@ void MalaMinya::wipe()
 }
 
 
-bool MalaMinya::save()
+bool MalaMinya::save(int id)
 {
   unsigned int w, h;
   unsigned int ignore;
@@ -544,6 +543,19 @@ bool MalaMinya::save()
       return false;
     }
 
+  // get the user number
+  int usr=1;
+  map<int, Pointer*>::iterator it = pointers.begin();
+  while(it != pointers.end())
+    {
+      Pointer* p = it->second;
+      if(p->getId() == id)
+	break;
+      it++;
+      ++usr;
+    }
+
+
   // should be enough ... 
   char filename[138]; 
   char date[138]; 
@@ -553,7 +565,7 @@ bool MalaMinya::save()
 
   // convert to date-string  
   strftime(date, 138, "%d.%m.%Y-%H.%M.%S", localtime(tp)); 
-  snprintf(filename, 138, "malaminya-save_%s.png", date); 
+  snprintf(filename, 138, "malaminya-save_%s_by-user%i.png", date, usr); 
  
   if(! Util::ImageToFile(image, filename))
     {

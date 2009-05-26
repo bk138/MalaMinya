@@ -83,7 +83,7 @@ class MalaMinya {
         void run();
 
         void wipe();
-	bool save();
+	bool save(int id); // id specifies who saves
 	void pensize(Pointer* dev);
 
     private:
