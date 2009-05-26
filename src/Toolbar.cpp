@@ -100,7 +100,7 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
             x11->vis,
             CWBackPixel,
             &attr);
-    if (!toolbar)
+    if (!pen)
         throw Error("Could not create window!");
 
     attr.background_pixel = color_save.pixel;
@@ -113,7 +113,7 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
             x11->vis,
             CWBackPixel,
             &attr);
-    if (!toolbar)
+    if (!save)
         throw Error("Could not create window!");
 
     attr.background_pixel = color_wipe.pixel;
@@ -126,7 +126,7 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
             x11->vis,
             CWBackPixel,
             &attr);
-    if (!toolbar)
+    if (!wipe)
         throw Error("Could not create window!");
 
     /* create the images */
@@ -193,6 +193,30 @@ Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_
     XFlush(x11->dpy);
     XSync(x11->dpy, False);
 }
+
+
+Toolbar::~Toolbar()
+{
+//delete img_icon; //this is actually owned by a Pointer obj, grrr
+  delete img_pen;
+  delete img_save;
+  delete img_wipe;
+
+  XDestroyImage(ximg_icon);
+  XDestroyImage(ximg_pen);
+  XDestroyImage(ximg_save);
+  XDestroyImage(ximg_wipe);
+  
+  XFreeGC(x11->dpy, gc_icon);
+  XFreeGC(x11->dpy, gc_pen);
+  XFreeGC(x11->dpy, gc_save);
+  XFreeGC(x11->dpy, gc_wipe);
+
+  XDestroyWindow(x11->dpy, toolbar);
+}
+
+
+
 
 void Toolbar::setButtonSize(int size)
 {

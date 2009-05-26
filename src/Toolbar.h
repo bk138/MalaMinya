@@ -77,6 +77,7 @@ class Toolbar {
 
     public:
         Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* icon);
+	~Toolbar();
         void move(int x, int y);
         void registerForEvents(XEventClass* evclass);
         bool hasWindow(Window win);
