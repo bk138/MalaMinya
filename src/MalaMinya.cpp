@@ -261,8 +261,8 @@ void MalaMinya::initDevices()
 
     XFreeDeviceList(devices);
 
-    //XiSelectEvent(x11->dpy, win, NULL,
-    //	  XI_DeviceHierarchyChangedMask);
+    XiSelectEvent(x11->dpy, DefaultRootWindow(x11->dpy), NULL,
+		  XI_DeviceHierarchyChangedMask);
 }
 
 /**
@@ -290,11 +290,9 @@ void MalaMinya::initToolbars()
         tb->id = p->id;
 
 	if(i%2)
-	  {
-	    tb->setVertical(true); DBG("%i is vertical\n", p->id);}
+	  tb->setVertical(true); 
 	else
-	  {
-	    tb->setVertical(false); DBG("%i is horizontal\n", p->id);}
+	  tb->setVertical(false); 
 
 	toolbars.push_back(tb);
         itp++;
@@ -417,7 +415,7 @@ void MalaMinya::run()
  */
 void MalaMinya::handleConfigure(XConfigureEvent* ev)
 {
-    int width = (WIDTH > ev->width) ? ev->width : WIDTH;
+    width = (WIDTH > ev->width) ? ev->width : WIDTH;
     width -= width % 20;
     height = width; 
     XResizeWindow(x11->dpy, menuswin, width, height);
@@ -439,87 +437,10 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
                         width - btheight * 2, 
                         height - btheight * 2);
 
-    int x = 0;
-    int y = 0;
-
-    vector<ColorButton*>::const_iterator it = cbuttons.begin();
-    while(it != cbuttons.end())
-    {
-        ColorButton* cbutton = *it;
-        cbutton->resize(btwidth, btheight);
-        cbutton->move(x, y);
-
-        if (y < (height - btwidth) && y > 0)
-        {
-            if (x == 0)
-                x = width - btwidth; 
-            else
-            {
-                x = 0;
-                y += btwidth;
-            }
-        } else
-        {
-            x += btwidth;
-        }
-
-        if (x > width - btwidth)
-        {
-            y += btwidth;
-            x = 0;
-        }
-
-        it++;
-    }
-
-    // toolbars
-    int i = 0;
-    vector<Toolbar*>::const_iterator it2 = toolbars.begin();
-    while(it2 != toolbars.end())
-    {
-        Toolbar* tb = *it2;
-        tb->setButtonSize(btwidth);
-
-        switch(i)
-        {
-            case 0:
-                x = width - 4 * btwidth - btheight; 
-                y = height - btheight;
-                break;
-            case 1:
-	      x = 0;
-	      y = height - 4 * btwidth - btwidth;
-                break;
-            case 2:
-	      x = 4 * btwidth;
-	      y = height - btheight;
-                break;
-            case 3:
-                x = 0;
-                y = 4 * btwidth;
-                break;
-            case 4:
-                x = 4 * btwidth;
-                y = 0;
-                break;
-            case 5:
-	      x = width - btheight;
-	      y = 4 * btwidth;
-                break;
-            case 6:
-	      x = width - 4 * btwidth - btwidth;
-	      y = 0;
-                 break;
-            case 7:
-                x = width - btheight;
-                y = height - 4 * btwidth - btwidth;
-                break;
-        }
-        tb->move(x, y);
-        it2++;
-	++i;
-    }
-
+    
+    placeColorButtons();
+    
+    placeToolbars();
 }
 
 void MalaMinya::handleMotionEvent(XDeviceMotionEvent* mev)
@@ -584,11 +505,11 @@ void MalaMinya::handleHierarchyChangedEvent(XGenericEvent* ev)
   initToolbars();
   registerEvents();
 
+  placeToolbars();
   repaintToolbars();
-  //FIXME repaint colorbuttons as well
+
 
   XFlush(x11->dpy);
-  XSync(x11->dpy, False);
 }
 
 
@@ -774,6 +695,66 @@ void MalaMinya::repaintToolbars()
     }
 }
 
+void MalaMinya::placeToolbars()
+{
+  int x,y;
+
+  int btwidth = (int) (width / (double)(cbuttons.size() / 4.0));
+  int btheight = btwidth;
+
+
+  int i = 0;
+  vector<Toolbar*>::const_iterator it = toolbars.begin();
+  while(it != toolbars.end())
+    {
+      Toolbar* tb = *it;
+
+      switch(i)
+        {
+	case 0:
+	  x = width - 4 * btwidth - btheight; 
+	  y = height - btheight;
+	  break;
+	case 1:
+	  x = 0;
+	  y = height - 4 * btwidth - btwidth;
+	  break;
+	case 2:
+	  x = 4 * btwidth;
+	  y = height - btheight;
+	  break;
+	case 3:
+	  x = 0;
+	  y = 4 * btwidth;
+	  break;
+	case 4:
+	  x = 4 * btwidth;
+	  y = 0;
+	  break;
+	case 5:
+	  x = width - btheight;
+	  y = 4 * btwidth;
+	  break;
+	case 6:
+	  x = width - 4 * btwidth - btwidth;
+	  y = 0;
+	  break;
+	case 7:
+	  x = width - btheight;
+	  y = height - 4 * btwidth - btwidth;
+	  break;
+        }
+
+      tb->setButtonSize(btwidth);
+      tb->move(x, y);
+
+      it++;
+      ++i;
+    }
+}
+
+
+
 ColorButton* MalaMinya::findColorButton(Window win)
 {
     vector<ColorButton*>::const_iterator it = cbuttons.begin();
@@ -787,3 +768,44 @@ ColorButton* MalaMinya::findColorButton(Window win)
     return NULL;
 }
 
+
+void MalaMinya::placeColorButtons()
+{
+  int btwidth = (int) (width / (double)(cbuttons.size() / 4.0));
+  int btheight = btwidth;
+
+  int x = 0;
+  int y = 0;
+
+  vector<ColorButton*>::const_iterator it = cbuttons.begin();
+  while(it != cbuttons.end())
+    {
+      ColorButton* cbutton = *it;
+      cbutton->resize(btwidth, btheight);
+      cbutton->move(x, y);
+
+      if (y < (height - btwidth) && y > 0)
+        {
+	  if (x == 0)
+	    x = width - btwidth; 
+	  else
+            {
+	      x = 0;
+	      y += btwidth;
+            }
+        } else
+        {
+	  x += btwidth;
+        }
+
+      if (x > width - btwidth)
+        {
+	  y += btwidth;
+	  x = 0;
+        }
+
+      it++;
+    }
+
+
+}

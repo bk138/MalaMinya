@@ -109,8 +109,10 @@ class MalaMinya {
         Toolbar* createToolbar(Magick::Image* icon);
         Toolbar* findToolbarFromWindow(Window win);
         void repaintToolbars();
+        void placeToolbars();
 
         ColorButton* findColorButton(Window win);
+	void placeColorButtons();
 };
 
 #endif
