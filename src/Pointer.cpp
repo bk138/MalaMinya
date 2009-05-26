@@ -20,7 +20,12 @@
 
   --*/
 
+#include <string>
+#include "Util.h"
+#include "MalaMinya.h"
 #include "Pointer.h"
+
+using namespace std;
 
 int Pointer::xi_motion = 0;
 int Pointer::xi_press = 0;
@@ -30,9 +35,11 @@ int Pointer::xi_release = 0;
  * Creates a new pointer with a given ID. The evclasses has to be an array of
  * 3 event classes in the order motion, press and release.
  */
-Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon, Magick::Image* img)
+Pointer::Pointer(int device_id, int icon_nr, XConn* x11, XEventClass* evclasses)
 {
-    this->id = id;
+    this->id = device_id;
+    this->dev = XOpenDevice(x11->dpy, id);
+
     this->x = this->y = -100;
     this->size = DFLT_POINTERSIZE;
 
@@ -41,9 +48,18 @@ Pointer::Pointer(int id, XEventClass* evclasses, XImage* icon, Magick::Image* im
     this->evclasses[XI_PRESS] = evclasses[XI_PRESS];
     this->evclasses[XI_RELEASE] = evclasses[XI_RELEASE];
 
-    this->icon = icon;
-    this->img = img;
+    char iconId[2] = {'0' + icon_nr, '\0'};
+    string file = IMAGEPATH "icon";
+    file.append((const char*)iconId);
+    file.append(".png");
+    this->img = Util::ImageFromFile((char*)file.c_str()); 
+    
+    // copy in here
+    Magick::Image icon_img = *img; 
+    icon_img.scale(Magick::Geometry(16, 16, 0, 0, false, false));
+    this->icon = Util::ImageToXImage(x11->dpy, x11->screen, &icon_img);
 }
+
 
 Pointer::~Pointer()
 {
@@ -52,7 +68,10 @@ Pointer::~Pointer()
     delete evclasses;
 }
 
-
+int Pointer::getId()
+{
+  return id;
+}
 
 void Pointer::setSize(int size) 
 {

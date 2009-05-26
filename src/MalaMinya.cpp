@@ -251,14 +251,13 @@ void MalaMinya::initDevices()
 	  DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
 
 	  XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
-	  Pointer* p = createPointer(devices[i].id, num_used, evclasses);
-	  p->dev = dev;
-	  pointers[p->id] = p;
+	  Pointer* p = new Pointer(devices[i].id, num_used, x11, evclasses);
+	  pointers[p->getId()] = p;
 	  p->setColor(cbuttons.at(0)->getColor());
 	  ++num_used;
         }
     }
-
+  
     XFreeDeviceList(devices);
 
     XiSelectEvent(x11->dpy, DefaultRootWindow(x11->dpy), NULL,
@@ -287,7 +286,7 @@ void MalaMinya::initToolbars()
     {
         Pointer* p = itp->second;
         tb = new Toolbar(this, x11, menuswin, p->getImage());
-        tb->id = p->id;
+        tb->id = p->getId();
 
 	if(i%2)
 	  tb->setVertical(true); 
@@ -340,7 +339,7 @@ void MalaMinya::registerEvents()
         Toolbar* t = *ittb;
         Pointer* pt = itp->second;
 
-        t->restrictTo(pt->id);
+        t->restrictTo(pt->getId());
         itp++;
         ittb++;
     }
@@ -590,25 +589,7 @@ void MalaMinya::repaintCanvas()
     XFlush(x11->dpy);
 }
 
-/** 
- * Creates a new pointer object with a specific icon.
- */
-Pointer* MalaMinya::createPointer(int id, int num_used, XEventClass* evclasses)
-{
-  char iconId[2] = {'0' + num_used, '\0'};
-  string file = IMAGEPATH "icon";
-  file.append((const char*)iconId);
-  file.append(".png");
-  Magick::Image* img = Util::ImageFromFile((char*)file.c_str()); 
 
-  // copy in here
-  Magick::Image icon_img = *img; 
-  icon_img.scale(Magick::Geometry(16, 16, 0, 0, false, false));
-  XImage* icon = Util::ImageToXImage(x11->dpy, x11->screen, &icon_img);
-
-  Pointer* p = new Pointer(id, evclasses, icon, img);
-  return p;
-}
 
 /**
  * Copies the pointer icon to the given pointer's position.

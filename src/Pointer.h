@@ -24,9 +24,10 @@
 #define __POINTER_H__
 
 
-#include<X11/Xlib.h>
-#include<X11/extensions/XInput.h>
+#include <X11/Xlib.h>
+#include <X11/extensions/XInput.h>
 #include <Magick++.h>
+#include "XConn.h"
 
 const int DFLT_POINTERSIZE = 3;
 
@@ -48,21 +49,23 @@ class Pointer {
 
         int x; /* x position of pointer */
         int y; /* y position of pointer */
-        int id ; /* id is the same as the device id */
-
-	XDevice* dev;
 
 
     private:
-	int size;
+	int id ; /* id is the same as the device id */
+	XDevice* dev;
+
+	int size; // actually size of the pen 
 	XColor color;
 	XEventClass* evclasses;
 	XImage* icon; // the small XImage incarnation of img
         Magick::Image* img;
 
     public:
-        Pointer(int device_id, XEventClass* evclasses, XImage* icon, Magick::Image* img);
+        Pointer(int device_id, int icon_nr, XConn* x11, XEventClass* evclasses);
         ~Pointer();
+
+	int getId();
 
 	void setSize(int size);
 	int  getSize();

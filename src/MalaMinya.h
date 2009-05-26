@@ -101,7 +101,6 @@ class MalaMinya {
         void repaintCanvas();
 
 	Pointer* findPointer(int id);
-        Pointer* createPointer(int id, int num_used, XEventClass* evclasses);
         void updatePointerIcons();
 
         Toolbar* findToolbarFromWindow(Window win);

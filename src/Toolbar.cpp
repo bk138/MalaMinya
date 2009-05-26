@@ -287,7 +287,7 @@ bool Toolbar::hasWindow(Window win)
 void Toolbar::handleClick(Pointer* device, Window win)
 {
   if(this->is_restricted)
-    if(device->id != this->mydevice)
+    if(device->getId() != this->mydevice)
       return;
   
   if (win == wipe)
