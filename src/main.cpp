@@ -31,9 +31,9 @@ int main(int argc, char** argv)
         if (argc > 0)
             display = argv[1];
 
-        MalaMinya* mm = new MalaMinya(display);
-        mm->init();
-        mm->run();
+        MalaMinya mm(display);
+        mm.init();
+        mm.run();
     } catch (Error e) 
     {
         std::cout << e.getMessage() << "\n";

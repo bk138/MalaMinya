@@ -90,17 +90,11 @@ MalaMinya::~MalaMinya()
     XUnmapWindow(x11->dpy, win);
     XDestroyWindow(x11->dpy, win);
 
-    XDeviceInfo* devices;
-    int num;
-
-    devices = XListInputDevices(x11->dpy, &num);
-
-
     std::map<int, Pointer*>::const_iterator it = pointers.begin();
     while (it != pointers.end())
     {
-        XCloseDevice(x11->dpy, it->second->dev);
-        delete it->second;
+      delete it->second;
+      it++;
     }
 
     XCloseDisplay(x11->dpy);
@@ -223,36 +217,41 @@ void MalaMinya::initDevices()
     devices = XListInputDevices(x11->dpy, &num);
 
     if (!num)
-        throw Error("No XINPUT devices found!");
+      throw Error("No XINPUT devices found!");
+
+    std::map<int, Pointer*>::const_iterator it = pointers.begin();
+    while (it != pointers.end())
+      {
+	delete it->second;
+	it++;
+      }
 
     pointers.clear();
 
     num_used = 0;
 
-    while(num > 0)
+    for(int i = 0; i < num; ++i)
     {
         XDevice* dev;
         XEventClass evclasses[3];
 
-        num--;
-        TRACE("found device: %d - %s \n", (int)devices[num].id,
-                devices[num].name); 
+	TRACE("found device: %d - %s \n", (int)devices[i].id, devices[i].name); 
 
-        if (devices[num].use == IsXPointer)
+        if (devices[i].use == IsXPointer)
         {
           if(num_used >= NO_USERS)
              break;
         
-	  TRACE("   adding device %d ...\n", (int)devices[num].id); 
+	  TRACE("   adding device %d ...\n", (int)devices[i].id); 
 
-	  dev = XOpenDevice(x11->dpy, devices[num].id);
+	  dev = XOpenDevice(x11->dpy, devices[i].id);
 	  
 	  DeviceMotionNotify(dev, Pointer::xi_motion, evclasses[0]);
 	  DeviceButtonPress(dev, Pointer::xi_press, evclasses[1]);
 	  DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
 
 	  XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
-	  Pointer* p = createPointer(devices[num].id, num_used, evclasses);
+	  Pointer* p = createPointer(devices[i].id, num_used, evclasses);
 	  p->dev = dev;
 	  pointers[p->id] = p;
 	  p->setColor(cbuttons.at(0)->getColor());
@@ -261,6 +260,9 @@ void MalaMinya::initDevices()
     }
 
     XFreeDeviceList(devices);
+
+    //XiSelectEvent(x11->dpy, win, NULL,
+    //	  XI_DeviceHierarchyChangedMask);
 }
 
 /**
@@ -268,43 +270,42 @@ void MalaMinya::initDevices()
  */
 void MalaMinya::initToolbars()
 {
-    toolbars.clear();
+  vector<Toolbar*>::const_iterator it = toolbars.begin();
+  while(it != toolbars.end())
+    {
+      delete *it;
+      it++;
+    }
+    
+  toolbars.clear();
 
     /* create toolbar for device */
     Toolbar* tb; 
-
-    map<int, Pointer*>::const_iterator it = pointers.begin();
-    while(it != pointers.end())
+    int i = 0;
+    map<int, Pointer*>::const_iterator itp = pointers.begin();
+    while(itp != pointers.end())
     {
-        Pointer* p = it->second;
+        Pointer* p = itp->second;
         tb = createToolbar(p->getImage());
         tb->id = p->id;
 
-        switch(p->id) /* There are only 8 devices */
-        {
-            case 2:
-            case 3:
-            case 6:
-            case 7:
-                tb->setVertical(true);
-                break;
-            case 0:
-            case 1:
-            case 4:
-            case 5:
-                tb->setVertical(false);
-                break;
-        }
+	if(i%2)
+	  {
+	    tb->setVertical(true); DBG("%i is vertical\n", p->id);}
+	else
+	  {
+	    tb->setVertical(false); DBG("%i is horizontal\n", p->id);}
 
-        toolbars.push_back(tb);
-        it++;
+	toolbars.push_back(tb);
+        itp++;
+	++i;
     }
 
 }
 
 void MalaMinya::registerEvents()
 {
-    /* 
+   /* 
        we run through all pointers and toolbars and register all pointer's
        event classes on all toolbars. This way everyone can use anybody's
        toolbar and we can limit it later again with MPX floor control.
@@ -369,41 +370,46 @@ void MalaMinya::registerEvents()
 void MalaMinya::run()
 {
 
-    bool running = true;
-    while(running)
+  bool running = true;
+  while(running)
     {
-        XEvent e;
-        XNextEvent(x11->dpy, &e);
-        switch(e.type)
+      XEvent e;
+      XNextEvent(x11->dpy, &e);
+      switch(e.type)
         {
-            case Expose:
-                repaintToolbars();
-                repaintCanvas();
-                break;
-            case ClientMessage:
-                if (e.xclient.message_type == x11->wm_protocols &&
-                        (Atom) e.xclient.data.l[0] == x11->wm_delete_window)
-                    running = false;
-                break;
-            case ConfigureNotify:
-                handleConfigure(&e.xconfigure);
-                break;
-            default:
-                if (e.type == Pointer::xi_motion)
-                {
-                    XDeviceMotionEvent* mev;
-                    mev = (XDeviceMotionEvent*)&e;
-                    handleMotionEvent(mev);
-                } if (e.type == Pointer::xi_press || e.type == Pointer::xi_release)
-                {
-                    handleButtonEvent((XDeviceButtonEvent*)&e);
-                }
-        }
+	case Expose:
+	  repaintToolbars();
+	  repaintCanvas();
+	  break;
+	case ClientMessage:
+	  if (e.xclient.message_type == x11->wm_protocols &&
+	      (Atom) e.xclient.data.l[0] == x11->wm_delete_window)
+	    running = false;
+	  break;
+	case ConfigureNotify:
+	  handleConfigure(&e.xconfigure);
+	  break;
+
+	default:
+	  if (e.type == GenericEvent)
+	    {
+	      XGenericEvent* gev = (XGenericEvent*)&e;
+	      // since we only registered for hierachy change, this should be okay
+	      // including XIproto would cause us to rename Pointer class
+	      handleHierarchyChangedEvent(gev);
+	    }
+	  if (e.type == Pointer::xi_motion)
+	    {
+	      handleMotionEvent((XDeviceMotionEvent*)&e);
+	    } 
+	  if (e.type == Pointer::xi_press || e.type == Pointer::xi_release)
+	    {
+	      handleButtonEvent((XDeviceButtonEvent*)&e);
+	    }
+	}
     }
-
-
-
 }
+
 
 /**
  * Handles configure events and resizes the window. 
@@ -467,26 +473,26 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
     }
 
     // toolbars
+    int i = 0;
     vector<Toolbar*>::const_iterator it2 = toolbars.begin();
-
     while(it2 != toolbars.end())
     {
         Toolbar* tb = *it2;
         tb->setButtonSize(btwidth);
 
-        switch(tb->id)
+        switch(i)
         {
             case 0:
                 x = width - 4 * btwidth - btheight; 
                 y = height - btheight;
                 break;
             case 1:
-                x = 4 * btwidth;
-                y = height - btheight;
+	      x = 0;
+	      y = height - 4 * btwidth - btwidth;
                 break;
             case 2:
-                x = 0;
-                y = height - 4 * btwidth - btwidth;
+	      x = 4 * btwidth;
+	      y = height - btheight;
                 break;
             case 3:
                 x = 0;
@@ -497,13 +503,13 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
                 y = 0;
                 break;
             case 5:
-                x = width - 4 * btwidth - btwidth;
-                y = 0;
+	      x = width - btheight;
+	      y = 4 * btwidth;
                 break;
             case 6:
-                x = width - btheight;
-                y = 4 * btwidth;
-                break;
+	      x = width - 4 * btwidth - btwidth;
+	      y = 0;
+                 break;
             case 7:
                 x = width - btheight;
                 y = height - 4 * btwidth - btwidth;
@@ -511,6 +517,7 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
         }
         tb->move(x, y);
         it2++;
+	++i;
     }
 
 }
@@ -568,6 +575,23 @@ void MalaMinya::handleButtonEvent(XDeviceButtonEvent* bev)
         TRACE("click on toolbar\n");
     }
 }
+
+
+void MalaMinya::handleHierarchyChangedEvent(XGenericEvent* ev)
+{
+  TRACE("hierarchy changed\n");
+  initDevices();
+  initToolbars();
+  registerEvents();
+
+  repaintToolbars();
+  //FIXME repaint colorbuttons as well
+
+  XFlush(x11->dpy);
+  XSync(x11->dpy, False);
+}
+
+
 
 /**
  * Clean the whole drawing area.

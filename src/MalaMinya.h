@@ -96,6 +96,7 @@ class MalaMinya {
         void handleMotionEvent(XDeviceMotionEvent* mev);
         void handleButtonEvent(XDeviceButtonEvent* bev);
         void handleConfigure(XConfigureEvent* ev);
+	void handleHierarchyChangedEvent(XGenericEvent* ev);
 
         void repaintCanvas();
 
