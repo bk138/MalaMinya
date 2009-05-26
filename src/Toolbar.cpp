@@ -30,9 +30,10 @@
 #include "Pointer.h"
 #include "Util.h"
 
-Toolbar::Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* img_icon)
+Toolbar::Toolbar(MalaMinya* mm, int id, XConn* x11, Window menuswin, Magick::Image* img_icon)
 {
     this->parent = mm;
+    this->id = id;
     this->x11 = x11;
     this->menuswin = menuswin;
     this->img_icon = img_icon;

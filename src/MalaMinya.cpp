@@ -285,8 +285,7 @@ void MalaMinya::initToolbars()
     while(itp != pointers.end())
     {
         Pointer* p = itp->second;
-        tb = new Toolbar(this, x11, menuswin, p->getImage());
-        tb->id = p->getId();
+        tb = new Toolbar(this, p->getId(), x11, menuswin, p->getImage());
 
 	if(i%2)
 	  tb->setVertical(true); 

@@ -23,8 +23,7 @@
 #ifndef __TOOLBAR_H__
 #define __TOOLBAR_H__
 
-#include<X11/Xlib.h>
-#include<X11/extensions/XInput.h>
+#include <X11/Xlib.h>
 #include "Pointer.h"
 #include "XConn.h"
 #include <Magick++.h>
@@ -34,9 +33,9 @@ const int BT_SIZE = 30;
 class MalaMinya;
 
 class Toolbar {
-    public:
-        int id;
     private:
+	int id;
+
         MalaMinya* parent;
 
         XConn* x11;
@@ -76,7 +75,7 @@ class Toolbar {
 	bool is_restricted;
 
     public:
-        Toolbar(MalaMinya* mm, XConn* x11, Window menuswin, Magick::Image* icon);
+        Toolbar(MalaMinya* mm, int id, XConn* x11, Window menuswin, Magick::Image* icon);
 	~Toolbar();
         void move(int x, int y);
         void registerForEvents(XEventClass* evclass);
