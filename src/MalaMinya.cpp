@@ -615,9 +615,9 @@ bool MalaMinya::save()
   unsigned int ignore;
   Window ign_window;
  
-  XGetGeometry(x11->dpy, canvaswin, &ign_window, (int*)&ignore, (int*)&ignore, &w, &h, &ignore, &ignore);
+  XGetGeometry(x11->dpy, backbuffer, &ign_window, (int*)&ignore, (int*)&ignore, &w, &h, &ignore, &ignore);
 
-  XImage* ximage = XGetImage(x11->dpy, canvaswin, 0, 0, w, h, AllPlanes, ZPixmap);
+  XImage* ximage = XGetImage(x11->dpy, backbuffer, 0, 0, w, h, AllPlanes, ZPixmap);
   Magick::Image* image = Util::XImageToImage(ximage);
   if(!image)
     {
