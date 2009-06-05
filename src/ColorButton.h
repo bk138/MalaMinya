@@ -37,7 +37,7 @@ class ColorButton
         ColorButton(XConn* x11, Window parent, int r, int g, int b);
         void move(int x, int y);
         void resize(int w, int h);
-        void registerEvent(XEventClass* evclass);
+	void registerEvent(int ev);
         bool hasWindow(Window win);
 
         XColor getColor();

@@ -23,11 +23,11 @@
 #ifndef __MALAMINYA_H__
 #define __MALAMINYA_H__
 
-#include<X11/Xlib.h>
-#include<X11/Xutil.h>
-#include<X11/extensions/XInput.h>
-#include<map>
-#include<vector>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/extensions/XInput2.h>
+#include <map>
+#include <vector>
 
 #include "Pointer.h"
 #include "Toolbar.h"
@@ -39,6 +39,8 @@
 #else
 #define IMAGEPATH "../images/"
 #endif
+
+
 
 const int MENUWIDTH = BT_SIZE * 4;
 const int MENUHEIGHT = BT_SIZE;
@@ -62,10 +64,6 @@ class MalaMinya {
         GC buffer;
         
         GC canvas;
-
-        int xi_motion;
-        int xi_press;
-        int xi_release;
 
         /* Pointer objects, one for each connected mouse. */
         map<int, Pointer*> pointers; 
@@ -93,10 +91,10 @@ class MalaMinya {
         void initDevices(); /* initialize the input devices */
         void registerEvents();
       
-        void handleMotionEvent(XDeviceMotionEvent* mev);
-        void handleButtonEvent(XDeviceButtonEvent* bev);
+        void handleMotionEvent(XIDeviceEvent* mev);
+        void handleButtonEvent(XIDeviceEvent* bev);
         void handleConfigure(XConfigureEvent* ev);
-	void handleHierarchyChangedEvent(XGenericEvent* ev);
+	void handleHierarchyChangedEvent(XIHierarchyEvent* ev);
 
         void repaintCanvas();
 

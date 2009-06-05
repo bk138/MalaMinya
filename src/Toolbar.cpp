@@ -273,12 +273,23 @@ void Toolbar::move(int x, int y)
     XMoveWindow(x11->dpy, toolbar, x, y);
 }
 
-void Toolbar::registerForEvents(XEventClass* evclass)
+void Toolbar::registerEvent(int ev)
 {
-    XSelectExtensionEvent(x11->dpy, pen, evclass, 1);
-    XSelectExtensionEvent(x11->dpy, save, evclass, 1);
-    XSelectExtensionEvent(x11->dpy, wipe, evclass, 1);
+  XIEventMask mask;
+  unsigned char bits[4] = {0};
+
+  mask.mask = bits;
+  mask.mask_len = sizeof(bits);
+  // which ones?
+  mask.deviceid = XIAllMasterDevices;
+  // what?
+  XISetMask(bits, ev);
+
+  XISelectEvents(x11->dpy, pen, &mask, 1);
+  XISelectEvents(x11->dpy, save, &mask, 1);
+  XISelectEvents(x11->dpy, wipe, &mask, 1);
 }
+
 
 bool Toolbar::hasWindow(Window win)
 {

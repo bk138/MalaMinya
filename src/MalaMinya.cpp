@@ -205,63 +205,61 @@ void MalaMinya::initColorButtons()
 void MalaMinya::initDevices()
 {
     /* init input devices */
-    XDeviceInfo* devices;
+    XIDeviceInfo* devices;
     int num, ignore, num_used;
+    int major = 2, minor = 0;
 
+    // query XI and XI2
     if(! XQueryExtension (x11->dpy, "XInputExtension", &ignore, &ignore, &ignore))
-      throw Error("No XInputExtension!");
+      throw Error("No XInput Extension!");
 
-    // activate XI2
-    XQueryInputVersion(x11->dpy, XI_2_Major, XI_2_Minor);
-
-    devices = XListInputDevices(x11->dpy, &num);
-
-    if (!num)
-      throw Error("No XINPUT devices found!");
-
+    if (XIQueryVersion(x11->dpy, &major, &minor) != Success)
+      throw Error("XI2 not supported.\n");
+    
+    // clean up pointer map
     std::map<int, Pointer*>::const_iterator it = pointers.begin();
     while (it != pointers.end())
       {
 	delete it->second;
 	it++;
       }
-
     pointers.clear();
+
+    // and query devices
+    devices = XIQueryDevice(x11->dpy, XIAllMasterDevices, &num);
 
     num_used = 0;
 
     for(int i = 0; i < num; ++i)
     {
-        XDevice* dev;
-        XEventClass evclasses[3];
+	TRACE("found master device: %d - %s \n", (int)devices[i].deviceid, devices[i].name); 
 
-	TRACE("found device: %d - %s \n", (int)devices[i].id, devices[i].name); 
-
-        if (devices[i].use == IsXPointer)
+        if (devices[i].use == XIMasterPointer)
         {
           if(num_used >= NO_USERS)
              break;
         
-	  TRACE("   adding device %d ...\n", (int)devices[i].id); 
+	  TRACE(" -> adding device %d ...\n", (int)devices[i].deviceid); 
 
-	  dev = XOpenDevice(x11->dpy, devices[i].id);
-	  
-	  DeviceMotionNotify(dev, Pointer::xi_motion, evclasses[0]);
-	  DeviceButtonPress(dev, Pointer::xi_press, evclasses[1]);
-	  DeviceButtonRelease(dev, Pointer::xi_release, evclasses[2]);
-
-	  XSelectExtensionEvent(x11->dpy, canvaswin, evclasses, 3);
-	  Pointer* p = new Pointer(devices[i].id, num_used, x11, evclasses);
+	  Pointer* p = new Pointer(devices[i].deviceid, num_used, x11);
 	  pointers[p->getId()] = p;
 	  p->setColor(cbuttons.at(0)->getColor());
 	  ++num_used;
         }
     }
   
-    XFreeDeviceList(devices);
+    XIFreeDeviceInfo(devices);
 
-    XiSelectEvent(x11->dpy, DefaultRootWindow(x11->dpy), NULL,
-		  XI_DeviceHierarchyChangedMask);
+    // finally, register for device hierarchy changes
+    XIEventMask mask;
+    unsigned char bits[4] = {0};
+
+    mask.mask = bits;
+    mask.mask_len = sizeof(bits);
+    mask.deviceid = XIAllDevices;
+    XISetMask(bits, XI_HierarchyChanged);
+
+    XISelectEvents(x11->dpy, x11->root, &mask, 1);
 }
 
 /**
@@ -301,67 +299,62 @@ void MalaMinya::initToolbars()
 
 void MalaMinya::registerEvents()
 {
-   /* 
-       we run through all pointers and toolbars and register all pointer's
-       event classes on all toolbars. This way everyone can use anybody's
-       toolbar and we can limit it later again with MPX floor control.
-       This doesn't sound like the smart thing to do but allows to demo MPX
-       floor control which is a bit more flexible than messing around with
-       X event classes.
-     */
-    map<int, Pointer*>::const_iterator itp; /* iterator over pointers */
-    vector<Toolbar*>::const_iterator ittb; /* iterator over allToolbars */
-    itp = pointers.begin();
+  XIEventMask mask;
+  unsigned char bits[4] = {0};
 
-    while(itp != pointers.end())
+  mask.mask = bits;
+  mask.mask_len = sizeof(bits);
+  // which ones?
+  mask.deviceid = XIAllMasterDevices;
+  // what?
+  XISetMask(bits, XI_ButtonPress);
+  XISetMask(bits, XI_ButtonRelease);
+  XISetMask(bits, XI_Motion);
+
+  XISelectEvents(x11->dpy, canvaswin, &mask, 1);
+
+
+  /* 
+     we run through all toolbars and register all master devices
+  */
+  vector<Toolbar*>::const_iterator ittb = toolbars.begin();
+  
+  while(ittb != toolbars.end())
     {
-        Pointer* pt = itp->second;
+      Toolbar* t = *ittb;
+      t->registerEvent(XI_ButtonPress);
+      ittb++;
+    }
+  
 
-        ittb = toolbars.begin();
-        while(ittb != toolbars.end())
-        {
-            Toolbar* t = *ittb;
-            t->registerForEvents(pt->getEventClass(XI_PRESS));
-            ittb++;
-        }
-        itp++;
+  /*
+    now set up floor control for the toolbars. We restrict each toolbar to
+    one pointing device for now.
+  */
+  map<int, Pointer*>::iterator itp = pointers.begin();
+  ittb = toolbars.begin();
+
+  while(itp != pointers.end())
+    {
+      Toolbar* t = *ittb;
+      Pointer* pt = itp->second;
+
+      t->restrictTo(pt->getId());
+      itp++;
+      ittb++;
     }
 
-    /*
-      now set up floor control for the toolbars. We restrict each toolbar to
-      one pointing device for now.
-     */
-    itp = pointers.begin();
-    ittb = toolbars.begin();
-    while(itp != pointers.end())
+  /* now run through the color buttons and register them for all devices */
+  vector<ColorButton*>::const_iterator itcb = cbuttons.begin();;
+  while(itcb != cbuttons.end())
     {
-        Toolbar* t = *ittb;
-        Pointer* pt = itp->second;
-
-        t->restrictTo(pt->getId());
-        itp++;
-        ittb++;
+      (*itcb)->registerEvent(XI_ButtonPress);
+      itcb++;
     }
 
-    /* now run through the color buttons and register them for all devices */
-
-    itp = pointers.begin();
-    vector<ColorButton*>::const_iterator itcb;
-
-    while(itp != pointers.end())
-    {
-        Pointer* pt = itp->second;
-
-        itcb = cbuttons.begin();
-        while (itcb != cbuttons.end())
-        {
-            (*itcb)->registerEvent(pt->getEventClass(XI_PRESS));
-            itcb++;
-        }
-
-        itp++;
-    }
+   
 }
+
 
 void MalaMinya::run()
 {
@@ -386,22 +379,19 @@ void MalaMinya::run()
 	  handleConfigure(&e.xconfigure);
 	  break;
 
-	default:
-	  if (e.type == GenericEvent)
-	    {
-	      XGenericEvent* gev = (XGenericEvent*)&e;
-	      // since we only registered for hierachy change, this should be okay
-	      // including XIproto would cause us to rename Pointer class
-	      handleHierarchyChangedEvent(gev);
-	    }
-	  if (e.type == Pointer::xi_motion)
-	    {
-	      handleMotionEvent((XDeviceMotionEvent*)&e);
-	    } 
-	  if (e.type == Pointer::xi_press || e.type == Pointer::xi_release)
-	    {
-	      handleButtonEvent((XDeviceButtonEvent*)&e);
-	    }
+	case GenericEvent:
+	 
+	  XIEvent* xi_e = (XIEvent*)&e;
+
+	  if (xi_e->evtype == XI_HierarchyChanged)
+	    handleHierarchyChangedEvent((XIHierarchyEvent*)xi_e);
+
+	  if (xi_e->evtype == XI_Motion)
+	    handleMotionEvent((XIDeviceEvent*)xi_e);
+
+	  if (xi_e->evtype == XI_ButtonPress || xi_e->evtype == XI_ButtonRelease)
+	    handleButtonEvent((XIDeviceEvent*)xi_e);
+	  break;
 	}
     }
 }
@@ -441,16 +431,20 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
     placeToolbars();
 }
 
-void MalaMinya::handleMotionEvent(XDeviceMotionEvent* mev)
+void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 {
-
     Pointer* p = findPointer(mev->deviceid);
-    if (mev->state & (Button1Mask | Button2Mask | Button3Mask))
-    {
+
+
+      if (XIMaskIsSet(mev->buttons->mask, 1) ||
+	  XIMaskIsSet(mev->buttons->mask, 2) ||
+	  XIMaskIsSet(mev->buttons->mask, 3))
+     {
         long mask = GCForeground | GCLineWidth;
         XGCValues vals;
 
-	if(mev->state & Button1Mask)
+	// Button 1
+	if(XIMaskIsSet(mev->buttons->mask, 1))
 	  {
 	    vals.foreground = p->getColorPixel();
 	    vals.line_width = p->getSize();
@@ -461,41 +455,41 @@ void MalaMinya::handleMotionEvent(XDeviceMotionEvent* mev)
 	    vals.line_width = p->getSize() * 3;
 	  }
         XChangeGC(x11->dpy, buffer, mask, &vals);
-        XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->x, mev->y);
+        XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->event_x, mev->event_y);
     }
 
-    p->x = mev->x;
-    p->y = mev->y;
+    p->x = mev->event_x;
+    p->y = mev->event_y;
     repaintCanvas();
     updatePointerIcons();
 }
 
-void MalaMinya::handleButtonEvent(XDeviceButtonEvent* bev)
+void MalaMinya::handleButtonEvent(XIDeviceEvent* bev)
 {
-    Toolbar* tb = findToolbarFromWindow(bev->window);
+    Toolbar* tb = findToolbarFromWindow(bev->event);
     Pointer* p = findPointer(bev->deviceid);
     if (!tb)
     {
-        ColorButton* cbt = findColorButton(bev->window);
+        ColorButton* cbt = findColorButton(bev->event);
         if (cbt)
         {
             TRACE("Selecting color\n");
             p->setColor(cbt->getColor());
-        } else if (bev->type == Pointer::xi_press) /* start line */
+        } else if (bev->evtype == XI_ButtonPress) /* start line */
         {
-            p->x = bev->x;
-            p->y = bev->y;
+            p->x = bev->event_x;
+            p->y = bev->event_y;
         }
     } else
     {
         // toolbar button release
-        tb->handleClick(p, bev->window);
+        tb->handleClick(p, bev->event);
         TRACE("click on toolbar\n");
     }
 }
 
 
-void MalaMinya::handleHierarchyChangedEvent(XGenericEvent* ev)
+void MalaMinya::handleHierarchyChangedEvent(XIHierarchyEvent* ev)
 {
   TRACE("hierarchy changed\n");
   initDevices();

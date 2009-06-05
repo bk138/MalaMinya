@@ -25,44 +25,34 @@
 
 
 #include <X11/Xlib.h>
-#include <X11/extensions/XInput.h>
+#include <X11/extensions/XInput2.h>
 #include <Magick++.h>
 #include "XConn.h"
 
 const int DFLT_POINTERSIZE = 3;
 
 
-enum event_classes {
-    XI_MOTION = 0,
-    XI_PRESS = 1,
-    XI_RELEASE = 2
-};
+
 /**
  * Pointer represents one pointer. Each pointer has a position, selected
  * colors etc. A pointer is NOT a user as a user may have multiple pointers.
  */
 class Pointer {
     public:
-        static int xi_motion;
-        static int xi_press;
-        static int xi_release;
-
         int x; /* x position of pointer */
         int y; /* y position of pointer */
 
 
     private:
 	int id ; /* id is the same as the device id */
-	XDevice* dev;
 
 	int size; // actually size of the pen 
 	XColor color;
-	XEventClass* evclasses;
 	XImage* icon; // the small XImage incarnation of img
         Magick::Image* img;
 
     public:
-        Pointer(int device_id, int icon_nr, XConn* x11, XEventClass* evclasses);
+        Pointer(int device_id, int icon_nr, XConn* x11);
         ~Pointer();
 
 	int getId();
@@ -73,7 +63,6 @@ class Pointer {
         long getColorPixel();
         void setColor(XColor color);
 
-        XEventClass* getEventClass(int which);
 	XImage* getIcon();         // get the small one as XImage
 	Magick::Image* getImage(); // get the full one
 };

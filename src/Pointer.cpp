@@ -27,26 +27,17 @@
 
 using namespace std;
 
-int Pointer::xi_motion = 0;
-int Pointer::xi_press = 0;
-int Pointer::xi_release = 0;
 
 /**
  * Creates a new pointer with a given ID. The evclasses has to be an array of
  * 3 event classes in the order motion, press and release.
  */
-Pointer::Pointer(int device_id, int icon_nr, XConn* x11, XEventClass* evclasses)
+Pointer::Pointer(int device_id, int icon_nr, XConn* x11)
 {
     this->id = device_id;
-    this->dev = XOpenDevice(x11->dpy, id);
 
     this->x = this->y = -100;
     this->size = DFLT_POINTERSIZE;
-
-    this->evclasses = new XEventClass[3];
-    this->evclasses[XI_MOTION] = evclasses[XI_MOTION];
-    this->evclasses[XI_PRESS] = evclasses[XI_PRESS];
-    this->evclasses[XI_RELEASE] = evclasses[XI_RELEASE];
 
     char iconId[2] = {'0' + icon_nr, '\0'};
     string file = IMAGEPATH "icon";
@@ -65,7 +56,6 @@ Pointer::~Pointer()
 {
     delete icon;
     delete img;
-    delete evclasses;
 }
 
 int Pointer::getId()
@@ -94,10 +84,6 @@ long Pointer::getColorPixel()
     return color.pixel;
 }
 
-XEventClass* Pointer::getEventClass(int which)
-{
-    return &evclasses[which];
-}
 
 XImage* Pointer::getIcon()
 {

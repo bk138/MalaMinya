@@ -69,12 +69,21 @@ void ColorButton::resize(int w, int h)
 {
     XResizeWindow(x11->dpy, win, w, h);
 }
-/**
- */
-void ColorButton::registerEvent(XEventClass* evclass)
-{
-    XSelectExtensionEvent(x11->dpy, win, evclass, 1);
 
+
+void ColorButton::registerEvent(int ev)
+{
+  XIEventMask mask;
+  unsigned char bits[4] = {0};
+
+  mask.mask = bits;
+  mask.mask_len = sizeof(bits);
+  // which ones?
+  mask.deviceid = XIAllMasterDevices;
+  // what?
+  XISetMask(bits, ev);
+
+  XISelectEvents(x11->dpy, win, &mask, 1);
 }
 
 bool ColorButton::hasWindow(Window win)

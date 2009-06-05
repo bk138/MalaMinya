@@ -78,7 +78,7 @@ class Toolbar {
         Toolbar(MalaMinya* mm, int id, XConn* x11, Window menuswin, Magick::Image* icon);
 	~Toolbar();
         void move(int x, int y);
-        void registerForEvents(XEventClass* evclass);
+	void registerEvent(int ev);
         bool hasWindow(Window win);
         void handleClick(Pointer* device, Window win);
         void restrictTo(int device);
