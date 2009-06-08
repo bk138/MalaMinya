@@ -210,7 +210,7 @@ void MalaMinya::initDevices()
     int major = 2, minor = 0;
 
     // query XI and XI2
-    if(! XQueryExtension (x11->dpy, "XInputExtension", &ignore, &ignore, &ignore))
+    if(! XQueryExtension (x11->dpy, "XInputExtension", &xi2opcode, &ignore, &ignore))
       throw Error("No XInput Extension!");
 
     if (XIQueryVersion(x11->dpy, &major, &minor) != Success)
@@ -380,17 +380,20 @@ void MalaMinya::run()
 	  break;
 
 	case GenericEvent:
-	 
 	  XIEvent* xi_e = (XIEvent*)&e;
+	  if(xi_e->extension == xi2opcode)
+	    {
+	      if (xi_e->evtype == XI_HierarchyChanged)
+		handleHierarchyChangedEvent((XIHierarchyEvent*)xi_e);
+	      
+	      if (xi_e->evtype == XI_Motion)
+		handleMotionEvent((XIDeviceEvent*)xi_e);
+	      
+	      if (xi_e->evtype == XI_ButtonPress || xi_e->evtype == XI_ButtonRelease)
+		handleButtonEvent((XIDeviceEvent*)xi_e);
+	    }
 
-	  if (xi_e->evtype == XI_HierarchyChanged)
-	    handleHierarchyChangedEvent((XIHierarchyEvent*)xi_e);
-
-	  if (xi_e->evtype == XI_Motion)
-	    handleMotionEvent((XIDeviceEvent*)xi_e);
-
-	  if (xi_e->evtype == XI_ButtonPress || xi_e->evtype == XI_ButtonRelease)
-	    handleButtonEvent((XIDeviceEvent*)xi_e);
+	  XIFreeEventData(xi_e);
 	  break;
 	}
     }

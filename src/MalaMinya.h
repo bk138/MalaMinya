@@ -65,6 +65,9 @@ class MalaMinya {
         
         GC canvas;
 
+	// XI2 opcode
+	int xi2opcode;
+
         /* Pointer objects, one for each connected mouse. */
         map<int, Pointer*> pointers; 
 
