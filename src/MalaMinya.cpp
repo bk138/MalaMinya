@@ -368,7 +368,7 @@ void MalaMinya::run()
         {
 	case Expose:
 	  repaintToolbars();
-	  repaintCanvas();
+	  repaintCanvas(0, 0, width, height);
 	  break;
 	case ClientMessage:
 	  if (e.xclient.message_type == x11->wm_protocols &&
@@ -436,35 +436,43 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
 
 void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 {
-    Pointer* p = findPointer(mev->deviceid);
+  Pointer* p = findPointer(mev->deviceid);
 
 
-      if (XIMaskIsSet(mev->buttons->mask, 1) ||
-	  XIMaskIsSet(mev->buttons->mask, 2) ||
-	  XIMaskIsSet(mev->buttons->mask, 3))
-     {
-        long mask = GCForeground | GCLineWidth;
-        XGCValues vals;
+  if (XIMaskIsSet(mev->buttons->mask, 1) ||
+      XIMaskIsSet(mev->buttons->mask, 2) ||
+      XIMaskIsSet(mev->buttons->mask, 3))
+    {
+      long mask = GCForeground | GCLineWidth;
+      XGCValues vals;
 
-	// Button 1
-	if(XIMaskIsSet(mev->buttons->mask, 1))
-	  {
-	    vals.foreground = p->getColorPixel();
-	    vals.line_width = p->getSize();
-	  }
-	else
-	  {
-	    vals.foreground = x11->white;
-	    vals.line_width = p->getSize() * 3;
-	  }
-        XChangeGC(x11->dpy, buffer, mask, &vals);
-        XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->event_x, mev->event_y);
+      // Button 1
+      if(XIMaskIsSet(mev->buttons->mask, 1))
+	{
+	  vals.foreground = p->getColorPixel();
+	  vals.line_width = p->getSize();
+	}
+      else
+	{
+	  vals.foreground = x11->white;
+	  vals.line_width = p->getSize() * 3;
+	}
+      XChangeGC(x11->dpy, buffer, mask, &vals);
+      XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->event_x, mev->event_y);
     }
 
-    p->x = mev->event_x;
-    p->y = mev->event_y;
-    repaintCanvas();
-    updatePointerIcons();
+  // if the pointer made a big jump, redraw the whole canvas,
+  // otherwise just update the area around the cursor
+  if(abs((int)mev->event_x - p->x) > 40 || abs((int)mev->event_y - p->y) > 40)
+    repaintCanvas(0, 0, width, height);
+  else
+    repaintCanvas(mev->event_x-75, mev->event_y-75, 150, 150);
+
+  // store new position
+  p->x = mev->event_x;
+  p->y = mev->event_y;
+
+  updatePointerIcons();
 }
 
 void MalaMinya::handleButtonEvent(XIDeviceEvent* bev)
@@ -591,9 +599,9 @@ void MalaMinya::pensize(Pointer *p)
 
 
 
-void MalaMinya::repaintCanvas()
+void MalaMinya::repaintCanvas(int x, int y, int w, int h)
 {
-    XCopyArea(x11->dpy, backbuffer, canvaswin, canvas, 0, 0, width, height, 0, 0);
+    XCopyArea(x11->dpy, backbuffer, canvaswin, canvas, x, y, w, h, x, y);
     XFlush(x11->dpy);
 }
 

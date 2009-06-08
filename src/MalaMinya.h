@@ -99,7 +99,7 @@ class MalaMinya {
         void handleConfigure(XConfigureEvent* ev);
 	void handleHierarchyChangedEvent(XIHierarchyEvent* ev);
 
-        void repaintCanvas();
+        void repaintCanvas(int x, int y, int w, int h);
 
 	Pointer* findPointer(int id);
         void updatePointerIcons();
