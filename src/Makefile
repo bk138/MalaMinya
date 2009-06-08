@@ -38,11 +38,12 @@ depend:
 
 ColorButton.o: ColorButton.h XConn.h Error.h MalaMinya.h Pointer.h Toolbar.h
 Error.o: Error.h
-MalaMinya.o: MalaMinya.h Pointer.h Toolbar.h XConn.h ColorButton.h logger.h
+MalaMinya.o: MalaMinya.h Pointer.h XConn.h Toolbar.h ColorButton.h logger.h
 MalaMinya.o: Error.h Util.h
-Pointer.o: Pointer.h
+Pointer.o: Util.h logger.h MalaMinya.h Pointer.h XConn.h Toolbar.h
+Pointer.o: ColorButton.h
 Toolbar.o: logger.h Toolbar.h Pointer.h XConn.h Error.h MalaMinya.h
 Toolbar.o: ColorButton.h Util.h
 Util.o: Util.h logger.h
 XConn.o: XConn.h Error.h
-main.o: Error.h MalaMinya.h Pointer.h Toolbar.h XConn.h ColorButton.h
+main.o: Error.h MalaMinya.h Pointer.h XConn.h Toolbar.h ColorButton.h
