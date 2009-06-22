@@ -105,12 +105,12 @@ MalaMinya::~MalaMinya()
  */
 void MalaMinya::init()
 {
-    /* to make programming easer we create toolbars after initialising the
-       devices. otherwise we have to go out of our way to get the tool buttons
-       to listen to the right event classes */
+    /* to make programming easier we create toolbars and backbuffers 
+       after initialising the devices. */
     initGUI();
     initColorButtons();
     initDevices();
+    initBackbuffers();
     initToolbars();
     registerEvents();
 
@@ -152,23 +152,17 @@ void MalaMinya::initGUI()
     XMapWindow(x11->dpy, menuswin);
 
     XGCValues gcvalues;
-    gcvalues.foreground = x11->black;
-    gcvalues.background = x11->white;
-
-    canvas = XCreateGC(x11->dpy, canvaswin, GCForeground | GCBackground,
-            &gcvalues);
-
 
     gcvalues.foreground = x11->white;
-    backbuffer = XCreatePixmap(x11->dpy, canvaswin, width, height, x11->depth);
-    buffer = XCreateGC(x11->dpy, backbuffer, GCForeground | GCBackground,
-            &gcvalues);
+    gcvalues.background = x11->white;
 
+    canvasgc = XCreateGC(x11->dpy, canvaswin, GCForeground | GCBackground,
+			 &gcvalues);
 
-    XFillRectangle(x11->dpy, backbuffer, buffer, 0, 0, width, height);
+    canvasbackbuf = new Backbuffer(x11, canvaswin, width, height);
+
 
     XFlush(x11->dpy);
-
 }
 
 /**
@@ -296,6 +290,36 @@ void MalaMinya::initToolbars()
     }
 
 }
+
+
+void MalaMinya::initBackbuffers()
+{
+  // clean up backbuffer map
+  map<int, Backbuffer*>::const_iterator it = backbuffers.begin();
+  while (it != backbuffers.end())
+    {
+      delete it->second;
+      it++;
+    }
+  backbuffers.clear(); 
+
+
+  // create backbuffer for each pointer 
+  Backbuffer* bb;
+  map<int, Pointer*>::const_iterator itp = pointers.begin();
+  while(itp != pointers.end())
+    {
+      Pointer* p =  itp->second;
+
+      bb = new Backbuffer(x11, canvaswin, width, height);
+      backbuffers[p->getId()] = bb;
+      
+      itp++;
+    }
+}
+
+
+
 
 void MalaMinya::registerEvents()
 {
@@ -436,7 +460,8 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
 
 void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 {
-  Pointer* p = findPointer(mev->deviceid);
+  int id = mev->deviceid;
+  Pointer* p = findPointer(id);
 
 
   if (XIMaskIsSet(mev->buttons->mask, 1) ||
@@ -457,8 +482,33 @@ void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 	  vals.foreground = x11->white;
 	  vals.line_width = p->getSize() * 3;
 	}
-      XChangeGC(x11->dpy, buffer, mask, &vals);
-      XDrawLine(x11->dpy, backbuffer, buffer, p->x, p->y, mev->event_x, mev->event_y);
+      // draw into the main backbuffer
+      XChangeGC(x11->dpy, canvasbackbuf->gc, mask, &vals);
+      XDrawLine(x11->dpy, canvasbackbuf->buf, canvasbackbuf->gc,
+		p->x, p->y, mev->event_x, mev->event_y);
+
+      // and also draw into our private one
+      XChangeGC(x11->dpy, backbuffers[id]->gc, mask, &vals);
+      XDrawLine(x11->dpy, backbuffers[id]->buf, backbuffers[id]->gc,
+		p->x, p->y, mev->event_x, mev->event_y);
+
+      // and: mark other private buffers with white
+      vals.foreground = x11->white;
+      Backbuffer* bb;
+      map<int, Backbuffer*>::const_iterator it = backbuffers.begin();
+      while (it != backbuffers.end())
+	{
+	  bb = it->second;
+	  // mark the _others_
+	  if(bb != backbuffers[id])
+	    {
+	      XChangeGC(x11->dpy, bb->gc, mask, &vals);
+	      XDrawLine(x11->dpy, bb->buf, bb->gc,
+			p->x, p->y, mev->event_x, mev->event_y);
+	    }
+
+	  it++;
+	}
     }
 
   // if the pointer made a big jump, redraw the whole canvas,
@@ -467,7 +517,7 @@ void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
     repaintCanvas(0, 0, width, height);
   else
     repaintCanvas(mev->event_x-75, mev->event_y-75, 150, 150);
-
+    
   // store new position
   p->x = mev->event_x;
   p->y = mev->event_y;
@@ -504,6 +554,7 @@ void MalaMinya::handleHierarchyChangedEvent(XIHierarchyEvent* ev)
 {
   TRACE("hierarchy changed\n");
   initDevices();
+  initBackbuffers();
   initToolbars();
   registerEvents();
 
@@ -519,16 +570,29 @@ void MalaMinya::handleHierarchyChangedEvent(XIHierarchyEvent* ev)
 /**
  * Clean the whole drawing area.
  */
-void MalaMinya::wipe()
+void MalaMinya::wipe(int id)
 {
-    XClearWindow(x11->dpy, canvaswin);
-    long mask = GCForeground;
-    XGCValues vals;
-    vals.foreground = x11->white;
-    XChangeGC(x11->dpy, buffer, mask, &vals);
-    XFillRectangle(x11->dpy, backbuffer, buffer, 0, 0, width, height);
-    XFlush(x11->dpy);
-    TRACE("WIPE!\n");
+  XClearWindow(x11->dpy, canvaswin);
+
+  XGCValues vals;
+  // change GC funtion to equiv !
+  vals.function = GXequiv;
+  XChangeGC(x11->dpy, backbuffers[id]->gc, GCFunction, &vals);
+  
+  XCopyArea(x11->dpy, backbuffers[id]->buf, canvasbackbuf->buf, backbuffers[id]->gc,
+	    0, 0, width, height, 0, 0);
+
+  // change back
+  vals.function = GXcopy;
+  vals.foreground = x11->white;
+  XChangeGC(x11->dpy, backbuffers[id]->gc, GCFunction | GCForeground, &vals);
+
+  // clear private backbuffer
+  XFillRectangle(x11->dpy, backbuffers[id]->buf, backbuffers[id]->gc, 0, 0, width, height);
+
+  repaintCanvas(0,0, width, height);
+
+  TRACE("WIPE for device id %d!\n", id);
 }
 
 
@@ -537,52 +601,54 @@ bool MalaMinya::save(int id)
   unsigned int w, h;
   unsigned int ignore;
   Window ign_window;
- 
-  XGetGeometry(x11->dpy, backbuffer, &ign_window, (int*)&ignore, (int*)&ignore, &w, &h, &ignore, &ignore);
 
-  XImage* ximage = XGetImage(x11->dpy, backbuffer, 0, 0, w, h, AllPlanes, ZPixmap);
+  XGetGeometry(x11->dpy, canvasbackbuf->buf, &ign_window, (int*)&ignore, (int*)&ignore, 
+	       &w, &h, &ignore, &ignore);
+
+  XImage* ximage = XGetImage(x11->dpy, canvasbackbuf->buf, 0, 0, w, h, AllPlanes, ZPixmap);
   Magick::Image* image = Util::XImageToImage(ximage);
   if(!image)
     {
       XFree(ximage);
       return false;
     }
-
+  
   // get the user number
   int usr=1;
-  map<int, Pointer*>::iterator it = pointers.begin();
-  while(it != pointers.end())
+  map<int, Pointer*>::iterator itp = pointers.begin();
+  while(itp != pointers.end())
     {
-      Pointer* p = it->second;
+      Pointer* p = itp->second;
       if(p->getId() == id)
 	break;
-      it++;
+      itp++;
       ++usr;
     }
 
-
+  
   // should be enough ... 
   char filename[138]; 
   char date[138]; 
   time_t t; time_t *tp = &t;  
-
+  
   time(tp); 
-
+  
   // convert to date-string  
   strftime(date, 138, "%d.%m.%Y-%H.%M.%S", localtime(tp)); 
   snprintf(filename, 138, "malaminya-save_%s_by-user%i.png", date, usr); 
- 
+  
   if(! Util::ImageToFile(image, filename))
     {
       delete image;
       XFree(ximage);
       return false;
     }
-
+  
   delete image;
   XFree(ximage);
-
+  
   TRACE("Saved %s!\n", filename);
+  
   return true;
 }
 
@@ -601,8 +667,8 @@ void MalaMinya::pensize(Pointer *p)
 
 void MalaMinya::repaintCanvas(int x, int y, int w, int h)
 {
-    XCopyArea(x11->dpy, backbuffer, canvaswin, canvas, x, y, w, h, x, y);
-    XFlush(x11->dpy);
+  XCopyArea(x11->dpy, canvasbackbuf->buf, canvaswin, canvasgc, x, y, w, h, x, y);
+  XFlush(x11->dpy);
 }
 
 
@@ -617,7 +683,8 @@ void MalaMinya::updatePointerIcons()
     while(it != pointers.end())
     {
         Pointer* p = it->second;
-        XPutImage(x11->dpy, canvaswin, canvas, p->getIcon(), 0, 0, p->x + 20, p->y + 10, 16, 16);
+        XPutImage(x11->dpy, canvaswin, canvasgc, p->getIcon(),
+		  0, 0, p->x + 20, p->y + 10, 16, 16);
         it++;
     }
 }

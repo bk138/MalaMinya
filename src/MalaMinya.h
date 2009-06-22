@@ -33,6 +33,7 @@
 #include "Toolbar.h"
 #include "ColorButton.h"
 #include "XConn.h"
+#include "Backbuffer.h"
 
 #ifdef MAKEDIST
 #define IMAGEPATH "/opt/MPX/images/"
@@ -59,17 +60,21 @@ class MalaMinya {
 
         Window win;
         Window menuswin;
+
         Window canvaswin;
-        Pixmap backbuffer;
-        GC buffer;
-        
-        GC canvas;
+        GC canvasgc;
+
+	Backbuffer *canvasbackbuf;
+
 
 	// XI2 opcode
 	int xi2opcode;
 
         /* Pointer objects, one for each connected mouse. */
         map<int, Pointer*> pointers; 
+
+	// private backbuffers, one for each pointer
+	map<int, Backbuffer*> backbuffers; 
 
         /* The toolbars, one for each connected mouse too. */
         vector<Toolbar*> toolbars;
@@ -83,7 +88,7 @@ class MalaMinya {
         void init(); /* show the GUI */
         void run();
 
-        void wipe();
+        void wipe(int id);
 	bool save(int id); // id specifies who saves
 	void pensize(Pointer* dev);
 
@@ -92,6 +97,7 @@ class MalaMinya {
         void initToolbars();
         void initColorButtons();
         void initDevices(); /* initialize the input devices */
+        void initBackbuffers();
         void registerEvents();
       
         void handleMotionEvent(XIDeviceEvent* mev);

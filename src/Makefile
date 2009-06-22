@@ -3,7 +3,7 @@
 APPNAME=malaminya
 
 CC=g++
-OBJ=Util.o Error.o XConn.o Pointer.o Toolbar.o ColorButton.o MalaMinya.o main.o 
+OBJ=Util.o Error.o XConn.o Pointer.o Toolbar.o Backbuffer.o ColorButton.o MalaMinya.o main.o 
 LIBRARIES=x11 xext xi ImageMagick++
 FLAGS=-Wall -ggdb
 CFLAGS=$(FLAGS) `pkg-config --cflags $(LIBRARIES)` 
@@ -36,14 +36,17 @@ depend:
 
 # DO NOT DELETE
 
+Backbuffer.o: Backbuffer.h XConn.h
 ColorButton.o: ColorButton.h XConn.h Error.h MalaMinya.h Pointer.h Toolbar.h
+ColorButton.o: Backbuffer.h
 Error.o: Error.h
-MalaMinya.o: MalaMinya.h Pointer.h XConn.h Toolbar.h ColorButton.h logger.h
-MalaMinya.o: Error.h Util.h
+MalaMinya.o: MalaMinya.h Pointer.h XConn.h Toolbar.h ColorButton.h
+MalaMinya.o: Backbuffer.h logger.h Error.h Util.h
 Pointer.o: Util.h logger.h MalaMinya.h Pointer.h XConn.h Toolbar.h
-Pointer.o: ColorButton.h
+Pointer.o: ColorButton.h Backbuffer.h
 Toolbar.o: logger.h Toolbar.h Pointer.h XConn.h Error.h MalaMinya.h
-Toolbar.o: ColorButton.h Util.h
+Toolbar.o: ColorButton.h Backbuffer.h Util.h
 Util.o: Util.h logger.h
 XConn.o: XConn.h Error.h
 main.o: Error.h MalaMinya.h Pointer.h XConn.h Toolbar.h ColorButton.h
+main.o: Backbuffer.h
