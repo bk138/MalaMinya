@@ -38,6 +38,8 @@ MalaMinya::MalaMinya(char* display)
     width = WIDTH;
     height = HEIGHT;
 
+    msg_shown = false;
+
     XSetWindowAttributes attr;
     attr.background_pixel = x11->white;
     attr.event_mask = ExposureMask | StructureNotifyMask; 
@@ -153,7 +155,7 @@ void MalaMinya::initGUI()
 
     XGCValues gcvalues;
 
-    gcvalues.foreground = x11->white;
+    gcvalues.foreground = x11->black;
     gcvalues.background = x11->white;
 
     canvasgc = XCreateGC(x11->dpy, canvaswin, GCForeground | GCBackground,
@@ -511,10 +513,13 @@ void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 	}
     }
 
-  // if the pointer made a big jump, redraw the whole canvas,
+  // if the pointer made a big jump (or we had a message), redraw the whole canvas,
   // otherwise just update the area around the cursor
-  if(abs((int)mev->event_x - p->x) > 40 || abs((int)mev->event_y - p->y) > 40)
-    repaintCanvas(0, 0, width, height);
+  if(abs((int)mev->event_x - p->x) > 40 || abs((int)mev->event_y - p->y) > 40 || msg_shown)
+    {
+      repaintCanvas(0, 0, width, height);
+      msg_shown = false;
+    }
   else
     repaintCanvas(mev->event_x-75, mev->event_y-75, 150, 150);
     
@@ -646,6 +651,12 @@ bool MalaMinya::save(int id)
   
   delete image;
   XFree(ximage);
+
+
+  string msg = "Screenshot taken!";
+  XDrawString(x11->dpy, canvaswin, canvasgc, width/2 - 80, height/2 - 40,
+	      msg.c_str(), msg.length());
+  msg_shown = true;
   
   TRACE("Saved %s!\n", filename);
   

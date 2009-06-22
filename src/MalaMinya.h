@@ -66,6 +66,7 @@ class MalaMinya {
 
 	Backbuffer *canvasbackbuf;
 
+	bool msg_shown;
 
 	// XI2 opcode
 	int xi2opcode;
