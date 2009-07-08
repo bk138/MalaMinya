@@ -38,7 +38,7 @@
 #ifdef MAKEDIST
 #define IMAGEPATH "/opt/MPX/images/"
 #else
-#define IMAGEPATH "../images/"
+#define IMAGEPATH "./images/"
 #endif
 
 
