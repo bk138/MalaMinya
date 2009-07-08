@@ -84,7 +84,7 @@ class MalaMinya {
         vector<ColorButton*> cbuttons;
 
     public: 
-        MalaMinya(char* display);
+        MalaMinya(char* display, int w, int h);
         ~MalaMinya();
         void init(); /* show the GUI */
         void run();

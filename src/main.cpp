@@ -22,18 +22,46 @@
 #include "Error.h"
 #include "MalaMinya.h"
 #include <iostream>
+#include <cstring>
+
 
 int main(int argc, char** argv) 
 {
     char* display = NULL;
+    int w, h = 0;
+
     try 
     {
-        if (argc > 0)
-            display = argv[1];
+      while(argc > 1) 
+	{
+	  --argc;
+	  if ( strcmp(argv[argc-1], "-display") == 0 ) 
+	    {                            
+	      display = (argv[argc]);                                 
+	      --argc;
+	    }      
+	  else
+	    if ( strcmp(argv[argc-1], "-width") == 0 ) 
+	      {                            
+		w = atoi(argv[argc]);
+		if(w < 300)    
+		  w = 300;
+		--argc;
+	      }      
+	    else
+	      if ( strcmp(argv[argc-1], "-height") == 0 ) 
+		{                            
+		  h = atoi(argv[argc]);
+		  if(h < 300)    
+		    h = 300;
+		  --argc;
+		}
+	}
 
-        MalaMinya mm(display);
-        mm.init();
-        mm.run();
+      MalaMinya mm(display, w, h);
+      mm.init();
+      mm.run();
+      
     } catch (Error e) 
     {
         std::cout << e.getMessage() << "\n";

@@ -31,12 +31,22 @@
 /**
  * Create MalaMinya and the top-level window.
  */
-MalaMinya::MalaMinya(char* display)
+MalaMinya::MalaMinya(char* display, int w, int h)
 {
     x11 = new XConn(display);
 
-    width = WIDTH;
-    height = HEIGHT;
+    if(w && h)
+      {
+	if(w > h)
+	  width = height = w;
+	else
+	  width = height = h;
+      }
+    else
+      {
+	width = WIDTH;
+	height = HEIGHT;
+      }
 
     msg_shown = false;
 
