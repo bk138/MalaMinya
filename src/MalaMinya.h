@@ -108,7 +108,6 @@ class MalaMinya {
 
         void repaintCanvas(int x, int y, int w, int h);
 
-	Pointer* findPointer(int id);
         void updatePointerIcons();
 
         Toolbar* findToolbarFromWindow(Window win);

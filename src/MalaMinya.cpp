@@ -463,7 +463,9 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
 void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 {
   int id = mev->deviceid;
-  Pointer* p = findPointer(id);
+  Pointer* p = pointers[id];
+  if(!p) 
+    return;
 
 
   if (XIMaskIsSet(mev->buttons->mask, 1) ||
@@ -533,7 +535,10 @@ void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 void MalaMinya::handleButtonEvent(XIDeviceEvent* bev)
 {
     Toolbar* tb = findToolbarFromWindow(bev->event);
-    Pointer* p = findPointer(bev->deviceid);
+    Pointer* p = pointers[bev->deviceid];
+    if(!p)
+      return;
+
     if (!tb)
     {
         ColorButton* cbt = findColorButton(bev->event);
@@ -699,20 +704,6 @@ void MalaMinya::updatePointerIcons()
         it++;
     }
 }
-
-
-/* returns the pointer object for a given device */
-Pointer* MalaMinya::findPointer(int id)
-{
-    Pointer* p;
-    p = pointers[id];
-    if (p == NULL)
-        throw Error("cannot find pointer instance for device!");
-
-    return p;
-}
-
-
 
 
 
