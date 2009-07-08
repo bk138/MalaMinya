@@ -463,10 +463,11 @@ void MalaMinya::handleConfigure(XConfigureEvent* ev)
 void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 {
   int id = mev->deviceid;
-  Pointer* p = pointers[id];
-  if(!p) 
-    return;
 
+  map<int, Pointer*>::iterator it = pointers.find(id);
+  if(it == pointers.end())
+    return;
+  Pointer* p = it->second;
 
   if (XIMaskIsSet(mev->buttons->mask, 1) ||
       XIMaskIsSet(mev->buttons->mask, 2) ||
@@ -535,9 +536,11 @@ void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
 void MalaMinya::handleButtonEvent(XIDeviceEvent* bev)
 {
     Toolbar* tb = findToolbarFromWindow(bev->event);
-    Pointer* p = pointers[bev->deviceid];
-    if(!p)
+
+    map<int, Pointer*>::iterator it = pointers.find(bev->deviceid);
+    if(it == pointers.end())
       return;
+    Pointer* p = it->second;
 
     if (!tb)
     {
