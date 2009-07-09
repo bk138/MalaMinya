@@ -36,9 +36,9 @@
 #include "Backbuffer.h"
 
 #ifdef MAKEDIST
-#define IMAGEPATH "/opt/MPX/images/"
+#define IMAGEPATH "/opt/CollabKit/MalaMinya/images/"
 #else
-#define IMAGEPATH "./images/"
+#define IMAGEPATH "../images/"
 #endif
 
 
