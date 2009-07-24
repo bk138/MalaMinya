@@ -415,10 +415,13 @@ void MalaMinya::run()
 	  handleConfigure(&e.xconfigure);
 	  break;
 
-	case GenericEvent:
-	  XIEvent* xi_e = (XIEvent*)&e;
-	  if(xi_e->extension == xi2opcode)
+	default:
+	  if(e.xcookie.type == GenericEvent &&
+	     e.xcookie.extension == xi2opcode &&
+	     XGetEventData(x11->dpy, &e.xcookie))
 	    {
+	      XIEvent* xi_e = (XIEvent*)e.xcookie.data;
+
 	      if (xi_e->evtype == XI_HierarchyChanged)
 		handleHierarchyChangedEvent((XIHierarchyEvent*)xi_e);
 	      
@@ -427,9 +430,9 @@ void MalaMinya::run()
 	      
 	      if (xi_e->evtype == XI_ButtonPress || xi_e->evtype == XI_ButtonRelease)
 		handleButtonEvent((XIDeviceEvent*)xi_e);
+	    
+	      XFreeEventData(x11->dpy, &e.xcookie);
 	    }
-
-	  XIFreeEventData(xi_e);
 	  break;
 	}
     }
@@ -479,15 +482,15 @@ void MalaMinya::handleMotionEvent(XIDeviceEvent* mev)
     return;
   Pointer* p = it->second;
 
-  if (XIMaskIsSet(mev->buttons->mask, 1) ||
-      XIMaskIsSet(mev->buttons->mask, 2) ||
-      XIMaskIsSet(mev->buttons->mask, 3))
+  if (XIMaskIsSet(mev->buttons.mask, 1) ||
+      XIMaskIsSet(mev->buttons.mask, 2) ||
+      XIMaskIsSet(mev->buttons.mask, 3))
     {
       long mask = GCForeground | GCLineWidth;
       XGCValues vals;
 
       // Button 1
-      if(XIMaskIsSet(mev->buttons->mask, 1))
+      if(XIMaskIsSet(mev->buttons.mask, 1))
 	{
 	  vals.foreground = p->getColorPixel();
 	  vals.line_width = p->getSize();
