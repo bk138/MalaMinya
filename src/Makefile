@@ -10,7 +10,7 @@ CFLAGS=$(FLAGS) `pkg-config --cflags $(LIBRARIES)`
 LIB=`pkg-config --libs $(LIBRARIES)` 
 CTAGS=ctags
 
-all: $(APPNAME) ctags
+all: $(APPNAME) etags
 
 $(APPNAME):	 $(OBJ) 
 	$(CC) $(CFLAGS) $(LIB) -o $(APPNAME) $(OBJ)
@@ -24,8 +24,8 @@ clean:
 run: all
 	./$(APPNAME)
 
-ctags:
-	$(CTAGS) *.cpp *.h
+etags:
+	etags *.cpp *.h
 
 dist: CFLAGS:=$(CFLAGS) -DMAKEDIST
 dist: clean all
