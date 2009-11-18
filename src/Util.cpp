@@ -71,38 +71,97 @@ bool Util::ImageToFile(Magick::Image* image, const char* filename)
  */
 XImage* Util::ImageToXImage(Display* dpy, int screen, Magick::Image* image)
 {
+  try 
+    {
+      int numBufBytes= 4 * image->columns() * image->rows() * sizeof(char);
+      char* buffer = (char*) malloc(numBufBytes);
 
-    try {
-        char* buffer = 
-            (char*) malloc(4 * image->columns() * image->rows() * sizeof(char));
-
-        if (!buffer)
+      if (!buffer)
         {
-            ERR("Cannot create buffer.\n");
-            throw Magick::Exception("Cannot create XImage");
+	  ERR("Cannot create buffer.\n");
+	  throw Magick::Exception("Cannot create XImage");
         }
 
-        image->write(0, 0, image->columns(), image->rows(), "BGRA",
-                Magick::CharPixel,
-                buffer);
+      image->write(0, 0, image->columns(), image->rows(), "BGRA",
+		   Magick::CharPixel,
+		   buffer);
 
-        XImage* ximage = XCreateImage(dpy, DefaultVisual(dpy, screen),
-                              DefaultDepth(dpy, screen), ZPixmap, 
-                              0, buffer, 
-                              image->columns(), image->rows(), 
-                              XBitmapPad(dpy), 0); 
-        if (!ximage)
+      //
+      // now, create an ximage*, convert buffer to right depth if needed
+      //
+      XImage *ximage = NULL;
+      int depth = DefaultDepth(dpy, screen);
+      
+      if (depth >= 24) 
+	{
+	  ximage = XCreateImage (dpy, 
+				 CopyFromParent, depth, 
+				 ZPixmap, 0, 
+				 (char*)buffer,
+				 image->columns(), image->rows(),
+				 32, 0);
+	}
+      else
+	if (depth >= 15) 
+	  {
+	    Visual *vis = DefaultVisual (dpy, screen);
+	    double rRatio = vis->red_mask / 255.0;
+	    double gRatio = vis->green_mask / 255.0;
+	    double bRatio = vis->blue_mask / 255.0;
+
+	    size_t numNewBufBytes = (2 * image->columns() * image->rows() * sizeof(char) );
+	    u_int16_t *newBuf = (u_int16_t*) malloc(numNewBufBytes);
+	  
+	    int outIndex = 0;	
+	    for (int i = 0; i < numBufBytes; ++i) 
+	      {
+		unsigned int r, g, b;
+		
+		b = (buffer[i] * bRatio);
+		++i;
+		g = (buffer[i] * gRatio);
+		++i;
+		r = (buffer[i] * rRatio);
+		++i;
+		
+		r &= vis->red_mask;
+		g &= vis->green_mask;
+		b &= vis->blue_mask;
+		
+		newBuf[outIndex] = r | g | b;
+		++outIndex;
+	      }		
+	    free(buffer);
+		
+	    ximage = XCreateImage (dpy,
+				   CopyFromParent, depth,
+				   ZPixmap, 0,
+				   (char *) newBuf,
+				   image->columns(), image->rows(),
+				   16, 0);
+	  } 
+	else 
+	  {
+	    ERR("Converting image to display depth failed.\n");
+	    throw Magick::Exception("Converting image to display depth failed");
+	    return NULL;				
+	  }
+      
+   
+      if (!ximage)
         {
-            ERR("Cannot create XImage.\n");
-            throw Magick::Exception("Cannot create XImage");
+	  ERR("Cannot create XImage.\n");
+	  throw Magick::Exception("Cannot create XImage");
         }
             
-        return ximage;
-    }catch (Magick::Exception &error)
+      return ximage;
+
+    }
+  catch (Magick::Exception &error)
     {
-        ERR("Converting image failed.\n");
-        ERR("  -- Error: %s\n", error.what());
-        return NULL;
+      ERR("Converting image failed.\n");
+      ERR("  -- Error: %s\n", error.what());
+      return NULL;
     }
 }
 

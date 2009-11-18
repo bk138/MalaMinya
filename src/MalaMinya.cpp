@@ -173,6 +173,7 @@ void MalaMinya::initGUI()
 
     canvasbackbuf = new Backbuffer(x11, canvaswin, width, height);
 
+    TRACE("X depth is %d\n", x11->depth);
 
     XFlush(x11->dpy);
 }
