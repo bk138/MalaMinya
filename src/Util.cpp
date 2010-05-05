@@ -69,7 +69,7 @@ bool Util::ImageToFile(Magick::Image* image, const char* filename)
  * Converts a Magick::Image to an XImage that can be displayed on the screen.
  * @param dpy The X Display.
  */
-XImage* Util::ImageToXImage(Display* dpy, int screen, Magick::Image* image)
+XImage* Util::ImageToXImage(XConn* x11, Magick::Image* image)
 {
   try 
     {
@@ -90,24 +90,22 @@ XImage* Util::ImageToXImage(Display* dpy, int screen, Magick::Image* image)
       // now, create an ximage*, convert buffer to right depth if needed
       //
       XImage *ximage = NULL;
-      int depth = DefaultDepth(dpy, screen);
-      
-      if (depth >= 24) 
+           
+      if (x11->depth >= 24) 
 	{
-	  ximage = XCreateImage (dpy, 
-				 CopyFromParent, depth, 
+	  ximage = XCreateImage (x11->dpy, 
+				 CopyFromParent, x11->depth, 
 				 ZPixmap, 0, 
 				 (char*)buffer,
 				 image->columns(), image->rows(),
 				 32, 0);
 	}
       else
-	if (depth >= 15) 
+	if (x11->depth >= 15) 
 	  {
-	    Visual *vis = DefaultVisual (dpy, screen);
-	    double rRatio = vis->red_mask / 255.0;
-	    double gRatio = vis->green_mask / 255.0;
-	    double bRatio = vis->blue_mask / 255.0;
+	    double rRatio = x11->vis->red_mask / 255.0;
+	    double gRatio = x11->vis->green_mask / 255.0;
+	    double bRatio = x11->vis->blue_mask / 255.0;
 
 	    size_t numNewBufBytes = (2 * image->columns() * image->rows() * sizeof(char) );
 	    u_int16_t *newBuf = (u_int16_t*) malloc(numNewBufBytes);
@@ -124,17 +122,17 @@ XImage* Util::ImageToXImage(Display* dpy, int screen, Magick::Image* image)
 		r = (buffer[i] * rRatio);
 		++i;
 		
-		r &= vis->red_mask;
-		g &= vis->green_mask;
-		b &= vis->blue_mask;
+		r &= x11->vis->red_mask;
+		g &= x11->vis->green_mask;
+		b &= x11->vis->blue_mask;
 		
 		newBuf[outIndex] = r | g | b;
 		++outIndex;
 	      }		
 	    free(buffer);
 		
-	    ximage = XCreateImage (dpy,
-				   CopyFromParent, depth,
+	    ximage = XCreateImage (x11->dpy,
+				   CopyFromParent, x11->depth,
 				   ZPixmap, 0,
 				   (char *) newBuf,
 				   image->columns(), image->rows(),

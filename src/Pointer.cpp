@@ -48,7 +48,7 @@ Pointer::Pointer(int device_id, int icon_nr, XConn* x11)
     // copy in here
     Magick::Image icon_img = *img; 
     icon_img.scale(Magick::Geometry(16, 16, 0, 0, false, false));
-    this->icon = Util::ImageToXImage(x11->dpy, x11->screen, &icon_img);
+    this->icon = Util::ImageToXImage(x11, &icon_img);
 }
 
 

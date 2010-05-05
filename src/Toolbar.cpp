@@ -134,7 +134,7 @@ Toolbar::Toolbar(MalaMinya* mm, int id, XConn* x11, Window menuswin, Magick::Ima
     img_pen = Util::ImageFromFile(IMAGEPATH "pen.png");
     if (img_pen)
     {
-        XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img_pen);
+        XImage* ximage = Util::ImageToXImage(x11, img_pen);
         if (!ximage)
         {
             ERR("Could not create ximage for pen.\n");
@@ -152,7 +152,7 @@ Toolbar::Toolbar(MalaMinya* mm, int id, XConn* x11, Window menuswin, Magick::Ima
     img_save = Util::ImageFromFile(IMAGEPATH "save.png");
     if (img_save)
     {
-        XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img_save);
+        XImage* ximage = Util::ImageToXImage(x11, img_save);
         if (!ximage)
         {
             ERR("Could not create ximage for pen.\n");
@@ -170,7 +170,7 @@ Toolbar::Toolbar(MalaMinya* mm, int id, XConn* x11, Window menuswin, Magick::Ima
     img_wipe = Util::ImageFromFile(IMAGEPATH "wipe.png");
     if (img_wipe)
     {
-        XImage* ximage = Util::ImageToXImage(x11->dpy, x11->screen, img_wipe);
+        XImage* ximage = Util::ImageToXImage(x11, img_wipe);
         if (!ximage)
         {
             ERR("Could not create ximage for pen.\n");
@@ -244,7 +244,7 @@ void Toolbar::rescale(Magick::Image *magickimg, XImage** ximg, int size)
     Magick::Image img = *magickimg;
     img.scale(Magick::Geometry(size, size, 0, 0, false, false));
 
-    *ximg = Util::ImageToXImage(x11->dpy, x11->screen, &img);
+    *ximg = Util::ImageToXImage(x11, &img);
 }
 
 void Toolbar::setVertical(bool vertical)

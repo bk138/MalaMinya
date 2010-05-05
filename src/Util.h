@@ -30,6 +30,7 @@
 #include<X11/X.h>
 #include<X11/Xlib.h>
 #include<Magick++.h>
+#include "XConn.h"
 #include "logger.h"
 
 class Util 
@@ -39,7 +40,7 @@ class Util
         static Magick::Image* ImageFromFile(const char* filename);
         static bool ImageToFile(Magick::Image* image, const char* filename);
 
-        static XImage* ImageToXImage(Display* dpy, int screen, Magick::Image* image);
+        static XImage* ImageToXImage(XConn* x11, Magick::Image* image);
         static Magick::Image* XImageToImage(const XImage* ximage);
 };
 
