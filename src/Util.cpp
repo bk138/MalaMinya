@@ -21,6 +21,7 @@
   --*/
 
 #include "Util.h"
+#include <stdint.h>
 
 
 /**
@@ -165,14 +166,57 @@ XImage* Util::ImageToXImage(XConn* x11, Magick::Image* image)
 
        
 
-Magick::Image* Util::XImageToImage(const XImage* ximage)
+Magick::Image* Util::XImageToImage(XConn* x11, const XImage* ximage)
 {
    try 
      {
        Magick::Image *image = new Magick::Image();
        image->modifyImage();
        image->type(Magick::TrueColorType);
-       image->read(ximage->width, ximage->height, "BGRA", Magick::CharPixel, ximage->data);
+
+       if(x11->depth == 32)
+	 image->read(ximage->width, ximage->height, "BGRA", Magick::CharPixel, ximage->data);
+       else if(x11->depth == 16)
+	 {
+	   // set size
+	   image->size(Magick::Geometry(ximage->width, ximage->height));
+
+	   image->modifyImage(); // get lock
+	    
+	   // get low level access
+	   Magick::PixelPacket* pp = image->getPixels(0, 0, image->columns(), image->rows());
+
+	   uint16_t* src = (uint16_t*)ximage->data;
+	   for (int i = 0; i < ximage->width * ximage->height; ++i) 
+	     {
+	       // get the 16 bits of the current pixel
+	       uint16_t r, g, b;
+	       r = g = b = *src;
+	       
+	       // extract the color values
+	       r &= x11->vis->red_mask;
+	       r = r >> bitcount(x11->vis->green_mask | x11->vis->blue_mask);
+
+	       g &= x11->vis->green_mask;
+	       g = g >> bitcount(x11->vis->blue_mask);
+
+	       b &= x11->vis->blue_mask;
+
+	       
+	       pp->red = r * (1 << (sizeof(Magick::Quantum)*8 - bitcount(x11->vis->red_mask)));
+	       pp->green = g * (1 << (sizeof(Magick::Quantum)*8 - bitcount(x11->vis->green_mask)));
+	       pp->blue = b * (1 << (sizeof(Magick::Quantum)*8 - bitcount(x11->vis->blue_mask)));
+
+	       pp++;
+	       src++;
+	     }		
+	 }
+       else
+	 { 
+	   throw Magick::Exception("Converting ximage to image failed");
+	   delete image;
+	 }
+
        return image;
    }
    catch (Magick::Exception &error)
@@ -182,4 +226,16 @@ Magick::Image* Util::XImageToImage(const XImage* ximage)
        return NULL;
      }
  
+}
+
+
+int Util::bitcount(unsigned int n) 
+{
+   int count = 0;
+   while (n) 
+     {
+       count += n & 0x1u;
+       n >>= 1;
+     }
+   return count;
 }

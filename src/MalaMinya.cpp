@@ -633,7 +633,7 @@ bool MalaMinya::save(int id)
 	       &w, &h, &ignore, &ignore);
 
   XImage* ximage = XGetImage(x11->dpy, canvasbackbuf->buf, 0, 0, w, h, AllPlanes, ZPixmap);
-  Magick::Image* image = Util::XImageToImage(ximage);
+  Magick::Image* image = Util::XImageToImage(x11, ximage);
   if(!image)
     {
       XFree(ximage);

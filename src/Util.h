@@ -18,7 +18,7 @@
  * along with MalaMinya; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-  --*/
+ --*/
 
 /**
  * Utility functions.
@@ -35,13 +35,14 @@
 
 class Util 
 {
+  static int bitcount(unsigned int x);
 
-    public:
-        static Magick::Image* ImageFromFile(const char* filename);
-        static bool ImageToFile(Magick::Image* image, const char* filename);
+ public:
+  static Magick::Image* ImageFromFile(const char* filename);
+  static bool ImageToFile(Magick::Image* image, const char* filename);
 
-        static XImage* ImageToXImage(XConn* x11, Magick::Image* image);
-        static Magick::Image* XImageToImage(const XImage* ximage);
+  static XImage* ImageToXImage(XConn* x11, Magick::Image* image);
+  static Magick::Image* XImageToImage(XConn* x11, const XImage* ximage);
 };
 
 #endif
